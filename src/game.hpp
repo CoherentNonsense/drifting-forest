@@ -2,10 +2,16 @@
 
 #include "server.hpp"
 #include <stdint.h>
-#include <string_view>
 
 namespace Game
 {
+
+enum class MessageType : uint8_t
+{
+  Join,
+  Leave,
+  Input
+};
 
 void init();
 void run();

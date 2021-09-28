@@ -6,13 +6,15 @@
 namespace Server
 {
 
-struct PerSocketData {
+struct PerSocketData
+{
+	uint32_t client_id;
 	// rate limiting
 	// bans
 	// etc.
 };
 
-typedef uWS::WebSocket<true, true, PerSocketData> WebSocket;
+using WebSocket = uWS::WebSocket<true, true, PerSocketData>;
 
 void run();
 void send(WebSocket socket);
