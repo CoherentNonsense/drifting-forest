@@ -1,21 +1,43 @@
 #pragma once
 
+#include "ecs/ecs.hpp"
+#include "chunk.hpp"
+#include <glm/vec3.hpp>
 #include <stdint.h>
-#include <string_view>
+#include <unordered_map>
+#include <memory>
+#include <vector>
 
 namespace World
 {
 
-uint32_t add_player();
-void remove_player(uint32_t entity_id);
-void player_input(uint32_t entity_id, std::string_view message);
+using WorldPosition = glm::vec<3, int32_t>;
+using ChunkPosition = glm::vec<3, int32_t>;
 
-Chunk* load_chunk(ChunkPosition chunk_position);
-void unload_chunk(ChunkPosition chunk_position);
+const uint16_t CHUNK_SIZE = 32;
+const uint16_t CHUNK_AREA = CHUNK_SIZE * CHUNK_SIZE;
+const uint16_t CHUNK_VOLUME = CHUNK_AREA * CHUNK_SIZE;
+
+const uint16_t WORLD_HEIGHT = 8 * CHUNK_SIZE;
 
 ChunkPosition world_to_chunk_position(WorldPosition world_position);
 WorldPosition chunk_to_world_position(ChunkPosition chunk_position);
-Chunk* get_chunk_from_world_position(WorldPosition world_position);
-Chunk* get_chunk(ChunkPosition chunk_position);
+
+
+class World
+{
+public:
+  World();
+  ~World();
+
+  void load_chunk(ChunkPosition chunk_position);
+  void unload_chunk(ChunkPosition chunk_position);
+  Chunk* get_chunk(ChunkPosition chunk_position);
+
+private:
+  std::unordered_map<ChunkPosition, Chunk*, ChunkPositionHash> chunks;
+  std::vector<Chunk*> loaded_chunks;
+  std::vector<Chunk*> chunk_pool;
+};
 
 }

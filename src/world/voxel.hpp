@@ -14,7 +14,7 @@ enum VoxelType : uint16_t
 struct Voxel
 {
   VoxelType type;
-  uint16_t state;
+  uint16_t data;
 };
 
 }

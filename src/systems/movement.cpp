@@ -3,21 +3,19 @@
 namespace Systems::Movement
 {
 
-static void move_players()
+void move_creatures(Chunk* chunk, const ComponentView<Position, Input>& view)
 {
+  for (auto entity : view)
+  {
+    WorldPosition next_position = apply_position(entity->position, entity->input);
+    
+    if (chunk->has_voxel(next_position))
+    {
+      continue;
+    }
 
-}
-
-static void move_npcs()
-{
-
-}
-
-void move_creatures()
-{
-  move_players();
-
-  move_npcs();
+    entity->position = next_position;
+  }
 }
 
 }

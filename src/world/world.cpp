@@ -3,34 +3,69 @@
 #include "chunk.hpp"
 #include <array>
 #include <map>
+#include <assert.h>
 
 namespace World
 {
 
-static const uint32_t MAX_ENTITIES = 1000;
-
-static std::map<ChunkPosition, Chunk*> chunks;
-static std::map<uint32_t, Chunk*> entity_chunk_map;
-static std::array<uint32_t, MAX_ENTITIES> entities;
-static uint32_t n_entities;
-
-uint32_t add_player()
+ChunkPosition world_to_chunk_position(WorldPosition world_position)
 {
-  static uint32_t current_entities = 0;
-  uint32_t new_entity_id = current_entities++;
-  entities[n_entities] = new_entity_id;
-  ++n_entities;
-  return new_entity_id;
+  return ChunkPosition{world_position.x / CHUNK_SIZE, world_position.y / CHUNK_SIZE, world_position.z / CHUNK_SIZE};
 }
 
-void remove_player(uint32_t entity_id)
+WorldPosition chunk_to_world_position(ChunkPosition chunk_position)
 {
-  --n_entities;
+  return WorldPosition{chunk_position.x * CHUNK_SIZE, chunk_position.y * CHUNK_SIZE, chunk_position.z * CHUNK_SIZE};
 }
 
-void player_input(uint32_t entity_id, std::string_view message)
+
+World::World()
+{}
+
+World::~World()
 {
-  Chunk* player_chunk = entity_chunk_map.at(entity_id);
+  for (auto kv : chunks)
+  {
+    delete kv.second;
+  }
+
+  for (auto chunk : chunk_pool)
+  {
+    delete chunk;
+  }
+}
+
+void World::load_chunk(ChunkPosition chunk_position)
+{
+  Chunk* chunk = nullptr;
+  if (chunk_pool.size() == 0)
+  {
+    chunk = new Chunk(chunk_position);
+  }
+  else
+  {
+    chunk = chunk_pool.back();
+    chunk_pool.pop_back();
+  }
+
+  chunks[chunk_position] = chunk;
+}
+
+void World::unload_chunk(ChunkPosition chunk_position)
+{
+  assert(chunks.find(chunk_position) != chunks.end() && "Unloading unloaded chunk");
+
+  Chunk* chunk = chunks.find(chunk_position)->second;
+
+  chunk_pool.push_back(chunk);
+  chunks.erase(chunk_position);
+}
+
+Chunk* World::get_chunk(ChunkPosition chunk_position)
+{
+  assert(chunks.find(chunk_position) != chunks.end() && "Requesting unloaded chunk");
+
+  return chunks.find(chunk_position)->second;
 }
 
 
