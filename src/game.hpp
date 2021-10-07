@@ -17,8 +17,9 @@ void init();
 void run();
 void cleanup();
 
-void client_connect(Server::WebSocket* socket);
-void client_disconnect(Server::WebSocket* socket);
+uint32_t player_join();
+void player_leave(uint32_t entity_id);
+
 void client_message(Server::WebSocket* socket, std::string_view message);
 
 }
