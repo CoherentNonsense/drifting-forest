@@ -1,10 +1,10 @@
 import { load_assets, load_asset } from "./asset_loader.js";
 import Shader from "./shader.js";
 
-const MAX_QUADS = 2000;
+const MAX_QUADS = 500;
 const MAX_VERTICES = MAX_QUADS * 4;
 const VERTEX_SIZE = 3 + 2; // Position + UV
-const BUFFER_SIZE = MAX_QUADS * VERTEX_SIZE;
+const BUFFER_SIZE = MAX_VERTICES * VERTEX_SIZE;
 
 let context = null;
 let webGl = null;
@@ -17,9 +17,24 @@ let vao = -1;
 let texture = -1;
 
 const vertices = new Float32Array(BUFFER_SIZE);
-const indices = generate_indices(MAX_VERTICES);
+const indices = generate_indices(MAX_QUADS);
 let p_vertex = 0;
 let p_index = 0;
+
+let scale =  10;
+let offset = {x: 0, y: 0};
+
+// TEMP Camera Navigation
+window.addEventListener("keydown", (e) => {
+  if (e.key === "j") scale += 1;
+  if (e.key === "k") scale -= 1;
+  if (scale < 5) scale = 5;
+  if (scale > 55) scale = 55;
+  if (e.key === "ArrowLeft") offset.x += 4;
+  if (e.key === "ArrowUp") offset.y -= 4;
+  if (e.key === "ArrowRight") offset.x -= 4;
+  if (e.key === "ArrowDown") offset.y += 4;
+});
 
 async function init(m_context)
 {
@@ -32,7 +47,7 @@ async function init(m_context)
   
   vbo = webGl.createBuffer();
   webGl.bindBuffer(webGl.ARRAY_BUFFER, vbo);
-  webGl.bufferData(webGl.ARRAY_BUFFER, BUFFER_SIZE, webGl.DYNAMIC_DRAW);
+  webGl.bufferData(webGl.ARRAY_BUFFER, vertices, webGl.DYNAMIC_DRAW);
   
   ebo = webGl.createBuffer();
   webGl.bindBuffer(webGl.ELEMENT_ARRAY_BUFFER, ebo);
@@ -102,22 +117,22 @@ function end_draw()
 
 function draw_sprite(x, y, sprite)
 {
-  if (p_vertex >= MAX_VERTICES)
+  if (p_vertex + VERTEX_SIZE * 4 >= BUFFER_SIZE)
   {
     flush();
   }
 
   const { width: canvas_width, height: canvas_height } = context.canvas;
   
-  const x_left = x / canvas_width * 8;
-  const x_right = (x + sprite.width) / canvas_width * 8;
-  const y_top = (y + sprite.height) / canvas_height * 8;
-  const y_bottom = y / canvas_height * 8;
+  const x_left = (x + offset.x - 4) / canvas_width * scale;
+  const x_right = (x + sprite.width + offset.x - 4) / canvas_width * scale;
+  const y_top = (y + sprite.height + offset.y - 4) / canvas_height * scale;
+  const y_bottom = (y + offset.y - 4) / canvas_height * scale;
 
   const u_left = (sprite.u) / sprite.size;
-  const u_right = (sprite.u + sprite.width - 0.005) / sprite.size;
+  const u_right = (sprite.u + sprite.width - 0.0001) / sprite.size;
   const v_top = (sprite.v) / sprite.size;
-  const v_bottom = (sprite.v + sprite.height - 0.005) / sprite.size;
+  const v_bottom = (sprite.v + sprite.height - 0.0001) / sprite.size;
 
   // Top Left
   vertices[p_vertex++] = x_left;
@@ -154,7 +169,7 @@ const Renderer = Object.freeze({
   init,
   start_draw,
   end_draw,
-  draw_sprite
+  draw_sprite,
 });
 
 export default Renderer;

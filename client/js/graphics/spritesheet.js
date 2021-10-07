@@ -6,7 +6,7 @@ export default class Spritesheet
     this.sprite_size = sprite_size;
   }
 
-  get_sprite(u, v, width, height)
+  get_sprite(u, v, width = 1, height = 1)
   {
     return { 
       u: u * this.sprite_size,
