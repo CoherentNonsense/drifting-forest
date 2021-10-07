@@ -1,15 +1,18 @@
-let socket = new WebSocket("ws://localhost:8080");
-socket.binaryType = "arraybuffer";
+import run_client from "./client.js";
+import Context from "./graphics/context.js";
+import Renderer from "./graphics/renderer.js";
+import Input from "./input.js";
+import Socket from "./network/socket.js";
 
-let ping_timer = 0;
-socket.onmessage = (data) => {
-  const time = performance.now();
-  console.log(time - ping_timer);
+async function main()
+{
+  const uiHTML = document.getElementById("game-ui");
+  const context = new Context("game-canvas");
+
+  await Renderer.init(context);
+  Input.listen(window);
+  Socket.init("ws://localhost:8080");
+  run_client();
 }
 
-socket.onopen = () => {
-  addEventListener("mousedown", () => {
-    ping_timer = performance.now();
-    socket.send("Ping");
-  });
-}
+main();
