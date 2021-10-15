@@ -48,6 +48,8 @@ void World::load_chunk(ChunkPosition chunk_position)
     chunk_pool.pop_back();
   }
 
+  world_generator->generate_chunk(*chunk);
+
   chunks[chunk_position] = chunk;
 }
 
@@ -61,7 +63,7 @@ void World::unload_chunk(ChunkPosition chunk_position)
   chunks.erase(chunk_position);
 }
 
-Chunk* World::get_chunk(ChunkPosition chunk_position)
+Chunk* World::get_chunk(ChunkPosition chunk_position) const
 {
   assert(chunks.find(chunk_position) != chunks.end() && "Requesting unloaded chunk");
 

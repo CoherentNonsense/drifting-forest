@@ -3,7 +3,8 @@
 #include "entity_manager.hpp"
 #include "component_manager.hpp"
 #include <memory>
-
+#include <bitset>
+#include <functional>
 
 namespace ECS
 {

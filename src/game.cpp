@@ -5,6 +5,7 @@
 #include <time.h>
 #include <iostream>
 #include <mutex>
+#include <memory>
 
 namespace Game
 {
@@ -20,12 +21,12 @@ static std::mutex input_mutex;
 // Game
 static int64_t last_tic = 0;
 static bool running = true;
-static ECS::Manager ecs;
-
+static std::unique_ptr<World::World> world;
 
 void init()
 {
   Server::run();
+  world = std::make_unique<World::World>();
 }
 
 void run()
@@ -40,7 +41,7 @@ void run()
     if (millis > last_tic)
     {
       input_mutex.lock();
-      // Systems::Game::tic();
+      Systems::Game::tic();
       input_mutex.unlock();
 
       last_tic = millis + TIME_STEP;

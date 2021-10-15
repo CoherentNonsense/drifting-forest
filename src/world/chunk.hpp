@@ -27,9 +27,11 @@ public:
 
   void set_voxel(VoxelType type, ChunkPosition position);
 
+  ChunkPosition get_position() const { return this->position; }
+
 private:
   ChunkPosition position;
-  std::unordered_map<ChunkPosition, ECS::Entity> entities;
+  std::unordered_map<ChunkPosition, ECS::Entity, ChunkPositionHash> entities;
   Voxel voxels[CHUNK_VOLUME];
 };
 
