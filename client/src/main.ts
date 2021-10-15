@@ -2,7 +2,7 @@ import run_client from "./client.js";
 import Context from "./graphics/context.js";
 import Renderer from "./graphics/renderer.js";
 import Input from "./input.js";
-import Socket from "./network/socket.js";
+import Network from "./network/socket.js";
 
 async function main()
 {
@@ -11,7 +11,7 @@ async function main()
 
   await Renderer.init(context);
   Input.listen(window);
-  Socket.init("ws://localhost:8080");
+  Network.init();
   run_client();
 }
 

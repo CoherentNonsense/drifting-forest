@@ -1,8 +1,7 @@
 import Renderer from "./graphics/renderer.js";
-import Spritesheet from "./graphics/spritesheet.js";
+import Sprite from "./graphics/spritesheet.js";
 import Input from "./input.js";
 import Socket from "./network/socket.js";
-import World from "./game/world.js";
 import Chunk from "./game/chunk.js";
 
 Input.add_button("KeyW");
@@ -10,7 +9,7 @@ Input.add_button("KeyA");
 Input.add_button("KeyS");
 Input.add_button("KeyD");
 
-const spritesheet = new Spritesheet(512, 8);
+const spritesheet = new Sprite.Spritesheet(512, 8);
 const sprite = spritesheet.get_sprite(3, 0);
 
 let last_time = 0;
@@ -24,13 +23,14 @@ const chunk = new Chunk();
 export default function run_client()
 {
   Socket.init();
+  console.log("ININITING")
   requestAnimationFrame(tic);
 }
 
 /**
  * Called every frame
  */
-function tic(time)
+function tic(time : number) : void
 {
   // Calculate timing
   const delta_time = (time - last_time) / 1000;
@@ -56,13 +56,13 @@ function tic(time)
   }
 
   // Send input to server
-  Socket.send("input", true);
+  // Socket.send("input", true);
 
   // Apply any data from server
   while (Socket.has_message())
   {
     const server_data = Socket.poll();
-    World.apply_server_data(server_data);
+    // World.apply_server_data(server_data);
   }
 
   // Render scene
