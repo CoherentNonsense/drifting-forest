@@ -18,42 +18,36 @@ struct Iterator
 
   Entity operator*() const
   {
-    return manager->get_entity(index);
+    return entity;
   }
   
   bool operator==(const Iterator& other) const
   {
-    return index == other.index;
+    return entity == other.entity;
   }
 
   bool operator!=(const Iterator& other) const
   {
-    return index != other.index;
+    return entity != other.entity;
   }
 
   Iterator& operator++()
   {
-    bool valid = false;
     do
     {
-      Entity entity = min_component_array.get_entity(first_index);
-      valid = true;
-      for (unsigned int i = 0; i < sizeof...(Cs); ++i)
-      {
-        valid = valid && manager->get_components(ids[i]).has(entity);
-      }
-
+      entity = min_component_array.get_entity(first_index);
       ++index;
     }
-    while (first_index < min_component_array.size() && !valid)
+    while (first_index < min_component_array.size() && !manager->has_components<Cs>(entity));
 
     return *this;
   }
 
 public:
-  size_t index;
+  Entity entity;
 
 private:
+  size_t index;
   Manager* manager;
   ComponentArray min_component_array;
 };
@@ -85,15 +79,9 @@ public:
     bool valid = false;
     while (true)
     {
-      
       Entity entity = min_component_array.get_entity(first_index);
-      valid = true;
-      for (unsigned int i = 0; i < sizeof...(Cs); ++i)
-      {
-        valid = valid && manager->get_components(ids[i]).has(entity);
-      }
 
-      if (first_index < min_component_array.size() && !valid)
+      if (first_index >= min_component_array.size() || manager->has_components<Cs>(entity))
         break;
 
       ++first_index;

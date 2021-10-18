@@ -57,6 +57,19 @@ public:
     return components[id].has(entity);
   }
 
+  template<typename... Cs>
+  bool has_components(Entity entity)
+  {
+    ComponentId ids[] = { get_component_id<Cs>... };
+    bool has = true;
+    for (unsigned int i = 0; i < sizeof...(Cs); ++i)
+    {
+      has = has && components[ids[i]].has(entity);
+    }
+
+    return has;
+  }
+  
   template<typename C>
   ComponentArray get_components()
   {
