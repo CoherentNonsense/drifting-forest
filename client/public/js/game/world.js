@@ -2,16 +2,22 @@ import { ServerPacketIds } from "../network/packet.js";
 import Chunk from "./chunk.js";
 var World;
 (function (World) {
-    const chunks = [];
-    const chunk_pool = [];
+    const chunks = new Map();
+    const chunk_pool = new Array();
     function load_chunk(server_data) {
         let chunk = chunk_pool.pop();
         if (chunk === undefined) {
             chunk = new Chunk();
         }
+        chunks.set(chunk.get_key(), chunk);
     }
-    function unload_chunk(chunk_data) {
+    function unload_chunk(chunk) {
+        const deleted = chunks.delete(chunk.get_key());
+        if (deleted) {
+            chunk_pool.push(chunk);
+        }
     }
+    World.unload_chunk = unload_chunk;
     function update_chunk(server_data) {
     }
     function update_entities(server_data) {

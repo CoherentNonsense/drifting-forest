@@ -15,7 +15,7 @@ const VERTEX_SIZE = 3 + 2;
 const BUFFER_SIZE = MAX_VERTICES * VERTEX_SIZE;
 var Renderer;
 (function (Renderer) {
-    let context;
+    let camera;
     let shaders = new Map();
     let textures = new Map();
     let vbo = null;
@@ -26,7 +26,8 @@ var Renderer;
     const indices = generate_indices(MAX_QUADS);
     let p_vertex = 0;
     let p_index = 0;
-    let scale = 10;
+    let tile_columns = 0;
+    let tile_rows = 0;
     const offset = { x: 0, y: 0 };
     function generate_indices(n_quads) {
         const n_indicies = n_quads * 6;
@@ -43,8 +44,8 @@ var Renderer;
     }
     function init(_context) {
         return __awaiter(this, void 0, void 0, function* () {
-            context = _context;
-            const webGl = context.webGl;
+            Renderer.context = _context;
+            const webGl = Renderer.context.webGl;
             vao = webGl.createVertexArray();
             webGl.bindVertexArray(vao);
             vbo = webGl.createBuffer();
@@ -70,20 +71,28 @@ var Renderer;
             webGl.enable(webGl.BLEND);
             webGl.texImage2D(webGl.TEXTURE_2D, 0, webGl.RGBA, webGl.RGBA, webGl.UNSIGNED_BYTE, default_texture);
             webGl.clearColor(1.0, 1.0, 1.0, 1.0);
-            context.resize();
         });
     }
     Renderer.init = init;
+    function use_camera(m_camera) {
+        camera = m_camera;
+    }
+    Renderer.use_camera = use_camera;
     function flush() {
-        const webGl = context.webGl;
+        if (p_vertex < 1)
+            return;
+        const webGl = Renderer.context.webGl;
         webGl.bufferSubData(webGl.ARRAY_BUFFER, 0, vertices, 0, p_vertex);
         webGl.drawElements(webGl.TRIANGLES, p_index, webGl.UNSIGNED_SHORT, 0);
         p_index = 0;
         p_vertex = 0;
     }
     function start_draw() {
-        const webGl = context.webGl;
+        const webGl = Renderer.context.webGl;
         webGl.clear(webGl.COLOR_BUFFER_BIT);
+        const shader = shaders.get("default");
+        webGl.uniform3f(shader.getUniform("u_offset"), Math.round(camera.position.x * Renderer.context.canvas.width) / Renderer.context.canvas.width, Math.round(camera.position.y * Renderer.context.canvas.height) / Renderer.context.canvas.height, camera.position.z);
+        webGl.uniform1f(shader.getUniform("u_scale"), Math.round(camera.scale));
     }
     Renderer.start_draw = start_draw;
     function end_draw() {
@@ -94,15 +103,15 @@ var Renderer;
         if (p_vertex + VERTEX_SIZE * 4 >= BUFFER_SIZE) {
             flush();
         }
-        const { width: canvas_width, height: canvas_height } = context.canvas;
-        const x_left = (x + offset.x - 4) / canvas_width * scale;
-        const x_right = (x + sprite.width + offset.x - 4) / canvas_width * scale;
-        const y_top = (y + sprite.height + offset.y - 4) / canvas_height * scale;
-        const y_bottom = (y + offset.y - 4) / canvas_height * scale;
-        const u_left = (sprite.u) / sprite.size;
-        const u_right = (sprite.u + sprite.width - 0.0001) / sprite.size;
-        const v_top = (sprite.v) / sprite.size;
-        const v_bottom = (sprite.v + sprite.height - 0.0001) / sprite.size;
+        const { width: canvas_width, height: canvas_height } = Renderer.context.canvas;
+        const x_left = (x + offset.x - 4) / canvas_width;
+        const x_right = (x + sprite.width + offset.x - 4) / canvas_width;
+        const y_top = (y + sprite.height + offset.y - 4) / canvas_height;
+        const y_bottom = (y + offset.y - 4) / canvas_height;
+        const u_left = (sprite.u + 0.005) / sprite.size;
+        const u_right = (sprite.u + sprite.width - 0.005) / sprite.size;
+        const v_top = (sprite.v + 0.005) / sprite.size;
+        const v_bottom = (sprite.v + sprite.height - 0.005) / sprite.size;
         vertices[p_vertex++] = x_left;
         vertices[p_vertex++] = y_top;
         vertices[p_vertex++] = 0;
@@ -126,23 +135,5 @@ var Renderer;
         p_index += 6;
     }
     Renderer.draw_sprite = draw_sprite;
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "j")
-            scale += 1;
-        if (e.key === "k")
-            scale -= 1;
-        if (scale < 5)
-            scale = 5;
-        if (scale > 55)
-            scale = 55;
-        if (e.key === "ArrowLeft")
-            offset.x += 4;
-        if (e.key === "ArrowUp")
-            offset.y -= 4;
-        if (e.key === "ArrowRight")
-            offset.x -= 4;
-        if (e.key === "ArrowDown")
-            offset.y += 4;
-    });
 })(Renderer || (Renderer = {}));
 export default Renderer;

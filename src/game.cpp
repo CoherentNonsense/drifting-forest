@@ -5,11 +5,12 @@
 #include <time.h>
 #include <iostream>
 #include <mutex>
+#include <memory>
 
 namespace Game
 {
 
-static const int64_t TPS = 1;
+static const int64_t TPS = 20;
 static const int64_t TIME_STEP = 1000 / TPS;
 
 
@@ -20,12 +21,12 @@ static std::mutex input_mutex;
 // Game
 static int64_t last_tic = 0;
 static bool running = true;
-static ECS::Manager ecs;
-
+static std::unique_ptr<World::World> world;
 
 void init()
 {
   Server::run();
+  world = std::make_unique<World::World>();
 }
 
 void run()
@@ -35,12 +36,12 @@ void run()
   {
     // Get time
     timespec_get(&ts, TIME_UTC);
-    int64_t millis = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    int64_t millis = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
 
     if (millis > last_tic)
     {
       input_mutex.lock();
-      // Systems::Game::tic();
+      Systems::Game::tic();
       input_mutex.unlock();
 
       last_tic = millis + TIME_STEP;
@@ -53,11 +54,12 @@ void cleanup()
   Server::cleanup();
 }
 
-uint32_t player_join()
+static void player_join(Server::WebSocket* socket)
 {
+  socket->getUserData()->client_id = 1;
 }
 
-void player_leave(uint32_t entity_id)
+static void player_leave(uint32_t entity_id)
 {
 
 }
@@ -72,13 +74,13 @@ void client_message(Server::WebSocket* socket, std::string_view message)
   switch (message_type)
   {
     case MessageType::Join:
-      socket->getUserData()->client_id = player_join();
+      player_join(socket);
       break;
     case MessageType::Leave:
       player_leave(socket->getUserData()->client_id);
       break;
     case MessageType::Input:
-      World::player_input(socket->getUserData()->client_id, message);
+      (socket->getUserData()->client_id, message);
       break;
   }
 

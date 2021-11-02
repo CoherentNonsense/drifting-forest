@@ -6,7 +6,8 @@ export default class Context {
         }
         this.canvas = element;
         this.webGl = this.canvas.getContext("webgl2");
-        addEventListener("resize", () => this.resize());
+        this.resize();
+        window.addEventListener("resize", () => this.resize());
     }
     resize() {
         this.canvas.width = this.canvas.clientWidth;

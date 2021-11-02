@@ -1,5 +1,5 @@
-var Network;
-(function (Network) {
+var Socket;
+(function (Socket) {
     const URL = "ws://localhost:8080";
     let socket = null;
     let connected = false;
@@ -24,19 +24,19 @@ var Network;
         socket.onerror = on_close;
         socket.onmessage = on_message;
     }
-    Network.init = init;
+    Socket.init = init;
     function send(id, data) {
         if (!connected)
             return;
         console.log(`Sending: ${id} ${data}`);
     }
-    Network.send = send;
+    Socket.send = send;
     function has_message() {
         return server_data.length > 0;
     }
-    Network.has_message = has_message;
+    Socket.has_message = has_message;
     function poll() {
     }
-    Network.poll = poll;
-})(Network || (Network = {}));
-export default Network;
+    Socket.poll = poll;
+})(Socket || (Socket = {}));
+export default Socket;
