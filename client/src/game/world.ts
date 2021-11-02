@@ -4,8 +4,8 @@ import Chunk from "./chunk.js";
 namespace World
 {
 
-const chunks : Chunk[] = [];
-const chunk_pool : Chunk[] = [];
+const chunks : Map<string, Chunk> = new Map();
+const chunk_pool : Chunk[] = new Array();
 
 
 function load_chunk(server_data : any) : void
@@ -16,11 +16,19 @@ function load_chunk(server_data : any) : void
     chunk = new Chunk();
   }
 
-  // chunk.load(server_data);
+  // Set chunk data
+
+  chunks.set(chunk.get_key(), chunk);
 }
 
-function unload_chunk(chunk_data : any) : void
+export function unload_chunk(chunk : Chunk) : void
 {
+  const deleted = chunks.delete(chunk.get_key());
+
+  if (deleted)
+  {
+    chunk_pool.push(chunk); 
+  }
 }
 
 

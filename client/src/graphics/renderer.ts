@@ -1,3 +1,4 @@
+import Camera from "./camera.js";
 import AssetLoader from "./asset_loader.js";
 import Context from "./context.js";
 import Shader from "./shader.js";
@@ -12,7 +13,9 @@ const BUFFER_SIZE : number = MAX_VERTICES * VERTEX_SIZE;
 namespace Renderer
 {
   
-let context : Context;
+export let context : Context;
+let camera : Camera;
+
 let shaders : Map<string, Shader> = new Map();
 let textures : Map<string, HTMLImageElement> = new Map();
 
@@ -26,7 +29,9 @@ const indices : Uint16Array = generate_indices(MAX_QUADS);
 let p_vertex : number = 0;
 let p_index : number = 0;
 
-let scale : number = 10;
+let tile_columns : number = 0;
+let tile_rows : number = 0;
+
 const offset : { x: number, y: number } = { x: 0, y: 0 };
 
 
@@ -87,11 +92,17 @@ export async function init(_context : Context) : Promise<void>
   webGl.texImage2D(webGl.TEXTURE_2D, 0, webGl.RGBA, webGl.RGBA, webGl.UNSIGNED_BYTE, default_texture);
 
   webGl.clearColor(1.0, 1.0, 1.0, 1.0);
-  context.resize();
+}
+
+export function use_camera(m_camera : Camera)
+{
+  camera = m_camera;
 }
 
 function flush() : void
 {
+  if (p_vertex < 1)
+    return;
   const webGl = context.webGl;
   webGl.bufferSubData(webGl.ARRAY_BUFFER, 0, vertices, 0, p_vertex);
   webGl.drawElements(webGl.TRIANGLES, p_index, webGl.UNSIGNED_SHORT, 0);
@@ -104,6 +115,12 @@ export function start_draw() : void
 {
   const webGl = context.webGl;
   webGl.clear(webGl.COLOR_BUFFER_BIT);
+
+  const shader = shaders.get("default") as Shader;
+  webGl.uniform3f(shader.getUniform("u_offset"),
+    Math.round(camera.position.x * context.canvas.width) / context.canvas.width,
+    Math.round(camera.position.y * context.canvas.height) / context.canvas.height, camera.position.z);
+  webGl.uniform1f(shader.getUniform("u_scale"), Math.round(camera.scale));
 }
 
 export function end_draw() : void
@@ -120,15 +137,15 @@ export function draw_sprite(x : number, y : number, sprite : Sprite.Frame) : voi
 
   const { width: canvas_width, height: canvas_height } = context.canvas;
   
-  const x_left = (x + offset.x - 4) / canvas_width * scale;
-  const x_right = (x + sprite.width + offset.x - 4) / canvas_width * scale;
-  const y_top = (y + sprite.height + offset.y - 4) / canvas_height * scale;
-  const y_bottom = (y + offset.y - 4) / canvas_height * scale;
+  const x_left = (x + offset.x - 4) / canvas_width;
+  const x_right = (x + sprite.width + offset.x - 4) / canvas_width;
+  const y_top = (y + sprite.height + offset.y - 4) / canvas_height;
+  const y_bottom = (y + offset.y - 4) / canvas_height;
 
-  const u_left = (sprite.u) / sprite.size;
-  const u_right = (sprite.u + sprite.width - 0.0001) / sprite.size;
-  const v_top = (sprite.v) / sprite.size;
-  const v_bottom = (sprite.v + sprite.height - 0.0001) / sprite.size;
+  const u_left = (sprite.u + 0.005) / sprite.size;
+  const u_right = (sprite.u + sprite.width - 0.005) / sprite.size;
+  const v_top = (sprite.v + 0.005) / sprite.size;
+  const v_bottom = (sprite.v + sprite.height - 0.005) / sprite.size;
 
   // Top Left
   vertices[p_vertex++] = x_left;
@@ -160,18 +177,6 @@ export function draw_sprite(x : number, y : number, sprite : Sprite.Frame) : voi
 
   p_index += 6;
 }
-
-// TEMP Camera Navigation
-window.addEventListener("keydown", (e) => {
-  if (e.key === "j") scale += 1;
-  if (e.key === "k") scale -= 1;
-  if (scale < 5) scale = 5;
-  if (scale > 55) scale = 55;
-  if (e.key === "ArrowLeft") offset.x += 4;
-  if (e.key === "ArrowUp") offset.y -= 4;
-  if (e.key === "ArrowRight") offset.x -= 4;
-  if (e.key === "ArrowDown") offset.y += 4;
-});
 
 }
 

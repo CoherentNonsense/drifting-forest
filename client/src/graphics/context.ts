@@ -14,7 +14,8 @@ export default class Context
     this.canvas = element as HTMLCanvasElement;
     this.webGl = this.canvas.getContext("webgl2") as WebGL2RenderingContext;
 
-    addEventListener("resize", () => this.resize());
+    this.resize();
+    window.addEventListener("resize", () => this.resize());
   }
 
   resize() : void

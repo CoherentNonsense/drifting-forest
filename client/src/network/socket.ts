@@ -1,4 +1,4 @@
-namespace Network
+namespace Socket
 {
 
 type ServerDataObj = {
@@ -59,4 +59,4 @@ export function poll() : any
 
 }
 
-export default Network;
+export default Socket;

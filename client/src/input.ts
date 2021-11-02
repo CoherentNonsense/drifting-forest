@@ -1,17 +1,10 @@
+namespace Input
+{
+
 const PRESSED = true;
 const RELEASED = false;
 
 const keyboard_states : Map<string, boolean> = new Map();
-
-function add_button(key : string)
-{
-  keyboard_states.set(key, RELEASED);
-}
-
-function get_key(key : string)
-{
-  return keyboard_states.get(key);
-}
 
 function on_key(event : KeyboardEvent)
 {
@@ -33,7 +26,7 @@ function on_key(event : KeyboardEvent)
   keyboard_states.set(code, key_state);
 }
 
-function listen(window : Window)
+export function listen(window : Window)
 {
   ["keydown", "keyup"].forEach((event_name) => {
     window.addEventListener(event_name, (event) => {
@@ -42,10 +35,16 @@ function listen(window : Window)
   });
 }
 
-const Input = Object.freeze({
-  listen,
-  add_button,
-  get_key
-});
+export function add_button(key : string)
+{
+  keyboard_states.set(key, RELEASED);
+}
+
+export function get_key(key : string)
+{
+  return keyboard_states.get(key);
+}
+
+}
 
 export default Input;
