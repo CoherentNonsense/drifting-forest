@@ -1,4 +1,4 @@
-# Drifting Forest Server
+# Drifting Forest
 WIP roguelike mmo
 
 <img src="misc/readme_cover.png" alt="cover image of game">
