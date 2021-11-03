@@ -1,6 +1,8 @@
 # Drifting Forest Server
 WIP roguelike mmo
 
+<img src="misc/readme_cover.png" alt="cover image of game">
+
 ## Compiling
 DF depends on [uWebSockets](https://github.com/uNetworking/uWebSockets)
 
