@@ -1,6 +1,5 @@
 #include "world.hpp"
 
-#include "chunk.hpp"
 #include <array>
 #include <map>
 #include <assert.h>
@@ -24,51 +23,51 @@ World::World()
 
 World::~World()
 {
-  for (auto kv : chunks)
-  {
-    delete kv.second;
-  }
+  // for (auto kv : chunks)
+  // {
+  //   delete kv.second;
+  // }
 
-  for (auto chunk : chunk_pool)
-  {
-    delete chunk;
-  }
+  // for (auto chunk : chunk_pool)
+  // {
+  //   delete chunk;
+  // }
 }
 
 void World::load_chunk(ChunkPosition chunk_position)
 {
-  Chunk* chunk = nullptr;
-  if (chunk_pool.size() == 0)
-  {
-    chunk = new Chunk(chunk_position);
-  }
-  else
-  {
-    chunk = chunk_pool.back();
-    chunk_pool.pop_back();
-  }
+  // Chunk* chunk = nullptr;
+  // if (chunk_pool.size() == 0)
+  // {
+  //   chunk = new Chunk(chunk_position);
+  // }
+  // else
+  // {
+  //   chunk = chunk_pool.back();
+  //   chunk_pool.pop_back();
+  // }
 
-  world_generator->generate_chunk(*chunk);
+  // // world_generator->generate_chunk(*chunk);
 
-  chunks[chunk_position] = chunk;
+  // chunks[chunk_position] = chunk;
 }
 
 void World::unload_chunk(ChunkPosition chunk_position)
 {
-  assert(chunks.find(chunk_position) != chunks.end() && "Unloading unloaded chunk");
+  // assert(chunks.find(chunk_position) != chunks.end() && "Unloading unloaded chunk");
 
-  Chunk* chunk = chunks.find(chunk_position)->second;
+  // Chunk* chunk = chunks.find(chunk_position)->second;
 
-  chunk_pool.push_back(chunk);
-  chunks.erase(chunk_position);
+  // chunk_pool.push_back(chunk);
+  // chunks.erase(chunk_position);
 }
 
-Chunk* World::get_chunk(ChunkPosition chunk_position) const
-{
-  assert(chunks.find(chunk_position) != chunks.end() && "Requesting unloaded chunk");
+// Chunk* World::get_chunk(ChunkPosition chunk_position) const
+// {
+//   // assert(chunks.find(chunk_position) != chunks.end() && "Requesting unloaded chunk");
 
-  return chunks.find(chunk_position)->second;
-}
+//   // return chunks.find(chunk_position)->second;
+// }
 
 
 }

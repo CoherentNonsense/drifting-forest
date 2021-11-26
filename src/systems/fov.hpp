@@ -3,6 +3,6 @@
 namespace Systems::FOV
 {
 
-void generate();
+void calculate();
 
 }

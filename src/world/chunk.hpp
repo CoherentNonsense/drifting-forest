@@ -1,41 +1,42 @@
 #pragma once
 
-#include "world.hpp"
+#include <array>
+#include <vector>
+
+#include "constants.hpp"
 #include "voxel.hpp"
-#include "ecs/ecs.hpp"
-#include <unordered_map>
+#include "position.hpp"
+#include "entities/entities.hpp"
+
 
 namespace World
 {
 
-struct ChunkPositionHash {
-  // http://www.beosil.com/download/CollisionDetectionHashing_VMV03.pdf
-  size_t operator()(const ChunkPosition& position) const
-  {
-    return (position.x * 88339) ^ (position.z * 91967) ^ (position.z * 126323);
-  }
+struct RLEVoxel
+{
+  VoxelType type;
+  uint16_t count;
 };
 
-class Chunk
+using VoxelArray = std::array<VoxelType, CHUNK_VOLUME>;
+using CompressedVoxelArray = std::vector<RLEVoxel>;
+
+struct Chunk
 {
 public:
-  Chunk(ChunkPosition position);
-  ~Chunk();
-
-  void add_entity(ECS::Entity entity);
-  void remove_entity(ECS::Entity entity);
-
+  void add_entity(Entities::Entity entity);
+  void remove_entity(Entities::Entity entity);
   void set_voxel(VoxelType type, ChunkPosition position);
 
   ChunkPosition get_position() const { return this->position; }
 
-private:
+public:
   ChunkPosition position;
-  std::unordered_map<ChunkPosition, ECS::Entity, ChunkPositionHash> entities;
-  Voxel voxels[CHUNK_VOLUME];
+  ChunkMap<ChunkPosition, Entities::Entity> entities;
+  VoxelArray voxels;
 };
 
-
-
+CompressedVoxelArray compess_voxel_data(const VoxelArray& data);
+VoxelArray decompress_voxel_data(const CompressedVoxelArray& data);
 
 }

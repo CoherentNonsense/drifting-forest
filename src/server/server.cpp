@@ -1,7 +1,12 @@
 #include "server.hpp"
 
-#include "game.hpp"
 #include <thread>
+#include <string_view>
+#include <string>
+#include <assert.h>
+
+#include "message.hpp"
+#include "game.hpp"
 
 namespace Server
 {
@@ -49,7 +54,7 @@ void run()
       client_connect(socket);
     },
     .message = [](WebSocket* socket, std::string_view message, uWS::OpCode) {
-      Game::client_message(socket, message);
+      Game::on_client_message(socket, message);
     },
     .drain = [](WebSocket */*ws*/) {},
     .close = [](WebSocket* socket, int /*code*/, std::string_view /*message*/) {
@@ -58,12 +63,11 @@ void run()
   });
 
   app->listen(PORT, [](auto *listen_socket) {
-    if (listen_socket) {
+    if (listen_socket)
       std::cout << "Listening on port " << PORT << std::endl;
-    }
   });
 
-  server_thread = std::thread{[](){
+  server_thread = std::thread{[]() {
     loop = uWS::Loop::get();
     app->run();
   }};
@@ -76,15 +80,22 @@ void cleanup()
 }
 
 /**
+ * Sends a message to a client
+ */
+void send(WebSocket* socket, ServerMessage& message)
+{
+  loop->defer([socket, message = std::move(message)]() {
+    socket->send(std::string_view{ message.data(), message.size() });
+  });
+}
+
+/**
  * Broadcasts a message to all connected clients
  */ 
-void broadcast(std::string_view message)
+void broadcast(ServerMessage& message)
 {
-  if (loop == nullptr)
-    return;
-
-  loop->defer([message]() {
-    app->publish("broadcast", message, uWS::OpCode::BINARY);
+  loop->defer([]() {
+    app->publish(std::string_view{ "broadcast" }, std::string_view{ "pong" }, uWS::OpCode::BINARY);
   });
 }
 

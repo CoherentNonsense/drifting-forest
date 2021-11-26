@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 
-namespace ECS
+namespace Entities
 {
 
 class Manager;
@@ -10,7 +10,7 @@ class Manager;
 template<typename Cs>
 struct Iterator
 {
-  Iterator(Manager* manager, size_t index, ComponentArray min_component_array) 
+  Iterator(Manager* manager, size_t index, ComponentPool min_component_array) 
     : manager(manager),
       index(index),
       min_component_array(min_component_array)
@@ -49,7 +49,7 @@ public:
 private:
   size_t index;
   Manager* manager;
-  ComponentArray min_component_array;
+  ComponentPool min_component_array;
 };
 
 
@@ -63,7 +63,7 @@ public:
     size_t min_component_size = -1;
     for (unsigned int i = 0; i < sizeof...(Cs); ++i)
     {
-      ComponentArray array = manager->get_components(ids[i]);
+      ComponentPool array = manager->get_components(ids[i]);
       size_t size = array.size();
       if (size < min_component_size)
       {
@@ -99,7 +99,7 @@ private:
   EntityIndex index;
   Manager* manager;
   ComponentId component_ids[sizeof...(Cs)];
-  ComponentArray min_component_array;
+  ComponentPool min_component_array;
   bool all{ false };
 };
 

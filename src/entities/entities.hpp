@@ -1,13 +1,26 @@
 #pragma once
 
-#include "types.hpp"
-#include "component_array.hpp"
-#include "view.hpp"
 #include <vector>
 #include <assert.h>
+#include <bitset>
 
-namespace ECS
+#include "types.hpp"
+#include "component_pool.hpp"
+#include "view.hpp"
+
+namespace Entities
 {
+
+Entity make_entity(EntityIndex index, EntityVersion version);
+EntityIndex get_entity_index(Entity entity);
+EntityVersion get_entity_version(Entity entity);
+
+class Entity
+{
+public:
+
+private:
+}
 
 class Manager
 {

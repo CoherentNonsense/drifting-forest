@@ -1,18 +1,18 @@
 #pragma once
 
 #include "types.hpp"
-#include "ecs.hpp"
+#include "entities.hpp"
 #include <vector>
 #include <unordered_map>
 
-namespace ECS
+namespace Entities
 {
 
-class ComponentArray
+class ComponentPool
 {
 public:
-  ComponentArray(size_t component_size);
-  ~ComponentArray();
+  ComponentPool(size_t component_size);
+  ~ComponentPool();
 
   void add(Entity entity);
   void remove(Entity entity);

@@ -1,8 +1,7 @@
-#include "ecs.hpp"
+#include "entities.hpp"
 
-#include "entity.hpp"
 
-namespace ECS
+namespace Entities
 {
 
 Manager::Manager()

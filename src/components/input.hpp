@@ -2,23 +2,23 @@
 
 #include <bitset>
 
-namespace Components
+namespace Components::Input
 {
 
-namespace
+struct Move
 {
-  struct Placement
-  {
-    std::bitset<8> direction;
-    uint32_t item_id;
-  };
-}
+  std::bitset<8> direction;
+};
 
-struct Input
+struct Place
 {
-  std::bitset<8> move_direction;
-  std::bitset<8> break_direction;
-  Placement placement;
+  std::bitset<8> direction;
+  uint32_t item_id;
+};
+
+struct Break
+{
+
 };
 
 }

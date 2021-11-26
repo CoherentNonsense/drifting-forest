@@ -3,9 +3,9 @@
 namespace Components
 {
 
-struct Brain
+struct fov
 {
-
+  
 };
 
 }

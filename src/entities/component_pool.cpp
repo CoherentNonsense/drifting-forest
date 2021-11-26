@@ -1,17 +1,17 @@
-#include "component_array.hpp"
+#include "component_pool.hpp"
 
-namespace ECS
+namespace Entities
 {
 
-ComponentArray::ComponentArray(size_t component_size)
+ComponentPool::ComponentPool(size_t component_size)
   : component_size(component_size),
     data(malloc(data_capacity * component_size))
 {}
 
-ComponentArray::~ComponentArray()
+ComponentPool::~ComponentPool()
 {}
 
-void ComponentArray::add(Entity entity)
+void ComponentPool::add(Entity entity)
 {
   if (packed.capacity() > data_capacity)
   {
@@ -24,7 +24,7 @@ void ComponentArray::add(Entity entity)
   packed[index] = entity;
 }
 
-void ComponentArray::remove(Entity entity)
+void ComponentPool::remove(Entity entity)
 {
   size_t removed_index = sparse[entity];
   size_t last_index = packed.size() - 1;
@@ -37,22 +37,22 @@ void ComponentArray::remove(Entity entity)
   packed.pop_back();
 }
 
-void* ComponentArray::get(Entity entity)
+void* ComponentPool::get(Entity entity)
 {
   return data + sparse[entity] * component_size;
 }
 
-bool ComponentArray::has(Entity entity)
+bool ComponentPool::has(Entity entity)
 {
   return sparse.find(entity) != sparse.end();
 }
 
-Entity ComponentArray::get_entity(size_t index)
+Entity ComponentPool::get_entity(size_t index)
 {
   return packed[index];
 }
 
-size_t ComponentArray::size() const
+size_t ComponentPool::size() const
 {
   return packed.size();
 }

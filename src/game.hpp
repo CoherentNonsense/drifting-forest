@@ -1,6 +1,6 @@
 #pragma once
 
-#include "server.hpp"
+#include "server/server.hpp"
 #include <stdint.h>
 
 namespace Game
@@ -17,6 +17,6 @@ void init();
 void run();
 void cleanup();
 
-void client_message(Server::WebSocket* socket, std::string_view message);
+void on_client_message(Server::WebSocket* socket, std::string_view message);
 
 }

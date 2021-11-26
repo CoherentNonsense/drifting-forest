@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-namespace ECS
+namespace Entities
 {
 
 using Entity = uint64_t;

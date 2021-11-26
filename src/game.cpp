@@ -1,51 +1,54 @@
 #include "game.hpp"
 
-#include "world/world.hpp"
-#include "systems/game_tic.hpp"
+// #include "world/world.hpp"
+// #include "events/game_tic.hpp"
 #include <time.h>
 #include <iostream>
 #include <mutex>
 #include <memory>
 
+#include "server/message.hpp"
+
 namespace Game
 {
 
-static const int64_t TPS = 20;
+static const int64_t TPS = 10;
 static const int64_t TIME_STEP = 1000 / TPS;
 
+static std::mutex input_mutex{};
 
-// Server
-static std::mutex input_mutex;
-
-
-// Game
 static int64_t last_tic = 0;
 static bool running = true;
-static std::unique_ptr<World::World> world;
+// static std::unique_ptr<World::World> world = std::make_unique<World::World>();
 
 void init()
 {
   Server::run();
-  world = std::make_unique<World::World>();
 }
 
 void run()
 {
   timespec ts;
+  int number_to_send;
   while (running)
   {
+    std::cin >> number_to_send;
+    Server::ServerHeader header{ Server::ServerMessageType::There, 0 };
+    Server::ServerMessage message{ header };
+    Server::broadcast(message);
+
     // Get time
-    timespec_get(&ts, TIME_UTC);
-    int64_t millis = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
+    // timespec_get(&ts, TIME_UTC);
+    // int64_t millis = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
 
-    if (millis > last_tic)
-    {
-      input_mutex.lock();
-      Systems::Game::tic();
-      input_mutex.unlock();
+    // if (millis > last_tic)
+    // {
+    //   input_mutex.lock();
+    //   Events::Game::tic(*world);
+    //   input_mutex.unlock();
 
-      last_tic = millis + TIME_STEP;
-    }
+    //   last_tic = millis + TIME_STEP;
+    // }
   }
 }
 
@@ -65,7 +68,7 @@ static void player_leave(uint32_t entity_id)
 }
 
 // Called by the server
-void client_message(Server::WebSocket* socket, std::string_view message)
+void on_client_message(Server::WebSocket* socket, std::string_view message)
 {
   input_mutex.lock();
 
