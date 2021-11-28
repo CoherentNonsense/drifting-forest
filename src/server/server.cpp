@@ -4,6 +4,7 @@
 #include <string_view>
 #include <string>
 #include <assert.h>
+#include <iostream>
 
 #include "message.hpp"
 #include "game.hpp"
@@ -29,7 +30,7 @@ static void client_disconnect(Server::WebSocket* socket)
   std::cout << "Disconnected" << std::endl;
 }
 
-void run()
+static void create_app()
 {
   app = new uWS::SSLApp({
     .key_file_name = "../misc/key.pem",
@@ -62,15 +63,19 @@ void run()
     }
   });
 
+  loop = uWS::Loop::get();
+
   app->listen(PORT, [](auto *listen_socket) {
-    if (listen_socket)
-      std::cout << "Listening on port " << PORT << std::endl;
+  if (listen_socket)
+      std::cout << "Listening on port " << PORT << "...\n";
   });
 
-  server_thread = std::thread{[]() {
-    loop = uWS::Loop::get();
-    app->run();
-  }};
+  app->run();
+}
+
+void run()
+{
+  server_thread = std::thread{ create_app };
 }
 
 void cleanup()
@@ -94,8 +99,8 @@ void send(WebSocket* socket, ServerMessage& message)
  */ 
 void broadcast(ServerMessage& message)
 {
-  loop->defer([]() {
-    app->publish(std::string_view{ "broadcast" }, std::string_view{ "pong" }, uWS::OpCode::BINARY);
+  loop->defer([message = std::move(message)]() {
+    app->publish(std::string_view{ "broadcast" }, std::string_view{ message.data() }, uWS::OpCode::BINARY);
   });
 }
 

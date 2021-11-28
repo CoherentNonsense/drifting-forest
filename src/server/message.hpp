@@ -33,8 +33,8 @@ struct Message
 public:
   Message(Header header)
   {
-    // buffer.resize(sizeof(Header));
-    // memcpy(buffer.data(), header, sizeof(Header));
+    buffer.resize(sizeof(Header));
+    memcpy(buffer.data(), &header, sizeof(Header));
   }
 
   template <typename T>

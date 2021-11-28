@@ -5,16 +5,19 @@ var Socket;
     let connected = false;
     const server_data = new Array();
     function on_open() {
+        console.log("Connected to server...");
         connected = true;
     }
-    function on_close() {
+    function on_close(_e) {
+        console.log("Disconnected from server... ");
         connected = false;
         setTimeout(() => {
             init();
-        }, 1000);
+        }, 5000);
     }
     function on_message(message) {
-        console.log(message);
+        const view = new Uint8Array(message.data);
+        console.log("Incoming message: " + view);
     }
     function init() {
         socket = new WebSocket(URL);

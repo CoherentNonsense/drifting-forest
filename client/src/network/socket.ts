@@ -13,20 +13,23 @@ const server_data : ServerDataObj[] = new Array();
 
 function on_open() : void
 {
+  console.log("Connected to server...");
   connected = true;
 }
 
-function on_close() : void
+function on_close(_e : Event) : void
 {
+  console.log("Disconnected from server... ")
   connected = false;
   setTimeout(() => {
     init();
-  }, 1000);
+  }, 5000);
 }
 
-function on_message(message : any) : void
+function on_message(message : MessageEvent<any>) : void
 {
-  console.log(message);
+  const view = new Uint8Array(message.data);
+  console.log("Incoming message: " + view);
 }
 
 export function init() : void

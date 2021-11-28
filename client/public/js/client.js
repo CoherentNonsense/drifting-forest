@@ -76,7 +76,7 @@ function tic(time) {
         const server_data = Socket.poll();
     }
     Renderer.start_draw();
-    chunk.draw();
+    debug_render();
     Renderer.draw_sprite(x_pos, y_pos, sprite);
     Renderer.end_draw();
     requestAnimationFrame(tic);
