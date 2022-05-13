@@ -1,29 +1,31 @@
-import Renderer from "./graphics/renderer.js";
-import Sprite from "./graphics/spritesheet.js";
-import Input from "./input.js";
-import Socket from "./network/socket.js";
-import Chunk from "./game/chunk.js";
-import Camera from "./graphics/camera.js";
+import Renderer from "./graphics/renderer";
+import Sprite from "./graphics/spritesheet";
+import Input from "./input";
+import Socket from "./network/socket";
+import Camera from "./graphics/camera";
+import { vec2 } from "gl-matrix";
 
-export let delta_time : number = 0;
+export let deltaTime : number = 0;
 
 const buttons = ["KeyW", "KeyA", "KeyS", "KeyD", "KeyP", "KeyO", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 buttons.forEach((button) => {
   Input.add_button(button);
 });
 
-const spritesheet = new Sprite.Spritesheet(512, 8);
-const sprite = spritesheet.get_sprite(3, 0);
+const playerSpritesheet = new Sprite.Spritesheet(512, 32);
+const playerSprite = playerSpritesheet.getFrame(0, 0);
+const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.15);
+const flowerSprite = playerSpritesheet.getFrame(0, 1);
+const groundSprite = playerSpritesheet.getFrame(1, 1);
+
+
+let lastTime = 0;
+let yPos = 0;
+let xPos = 0;
+const speed = 80;
+
 const camera = new Camera();
-Renderer.use_camera(camera);
-
-let last_time = 0;
-let move_timer = 0;
-let y_pos = 0;
-let x_pos = 0;
-let diagonal_alternate = false;
-
-const chunk = new Chunk();
+camera.setScale(3);
 
 export default async function run_client()
 {
@@ -36,35 +38,24 @@ export default async function run_client()
 function tic(time : number) : void
 {
   // Calculate timing
-  delta_time = (time - last_time) / 1000;
-  last_time = time;
-
-  if (Input.get_key("ArrowLeft")) camera.pan({ x: 0.1, y: 0});
-  if (Input.get_key("ArrowRight")) camera.pan({ x: -0.1, y: 0});
-  if (Input.get_key("ArrowUp")) camera.pan({ x: 0, y: -0.1});
-  if (Input.get_key("ArrowDown")) camera.pan({ x: 0, y: 0.1});
-  if (Input.get_key("KeyP")) camera.zoom(2);
-  if (Input.get_key("KeyO")) camera.zoom(-2);
-
+  deltaTime = (time - lastTime) / 1000;
+  lastTime = time;
 
   // Get player input
-  if (time > move_timer)
+  let dirX = 0, dirY = 0;
+  if (Input.get_key("KeyW")) { dirY += 1 * deltaTime * speed }
+  if (Input.get_key("KeyS")) { dirY += -1 * deltaTime * speed }
+  if (Input.get_key("KeyA")) { dirX += -1 * deltaTime * speed }
+  if (Input.get_key("KeyD")) { dirX += 1 * deltaTime * speed }
+  
+  if (dirX !== 0 && dirY !== 0)
   {
-    let off_x = 0, off_y = 0;
-    if (Input.get_key("KeyW")) { off_y += 1; move_timer = time + 250; }
-    if (Input.get_key("KeyS")) { off_y += -1; move_timer = time + 250; }
-    if (Input.get_key("KeyA")) { off_x += -1; move_timer = time + 250; }
-    if (Input.get_key("KeyD")) { off_x += 1; move_timer = time + 250; }
-    
-    if (off_x !== 0 && off_y !== 0)
-    {
-
-      diagonal_alternate = !diagonal_alternate;
-    }
-
-    x_pos += off_x * 8;
-    y_pos += off_y * 8;
+    dirX *= 0.707;
+    dirY *= 0.707;
   }
+
+  xPos += dirX;
+  yPos += dirY;
 
   // Send input to server
   // Socket.send("input", true);
@@ -72,58 +63,30 @@ function tic(time : number) : void
   // Apply any data from server
   while (Socket.has_message())
   {
-    const server_data = Socket.poll();
+    const serverData = Socket.poll();
     // World.apply_server_data(server_data);
   }
 
+  camera.moveTo(vec2.fromValues(Math.round(xPos), Math.round(yPos)));
   // Render scene
-  Renderer.start_draw();
+  Renderer.start_draw(camera);
 
-  debug_render();
+  // debug_render();
   // chunk.draw();
-  Renderer.draw_sprite(x_pos, y_pos, sprite);
+  for (let x = 0; x < 32; ++x) {
+    for (let y = 0; y < 16; ++y) {
+      if (Math.sin((x - y * 0.5)) > -0) {
+        Renderer.draw_sprite(x * 32, y * 32, flowerSprite);
+      } else {
+        Renderer.draw_sprite(x * 32, y * 32, groundSprite);
+      }
+    }
+  }
+  playerSpriteAnim.update(deltaTime);
+  Renderer.draw_sprite(Math.round(xPos), Math.round(yPos), playerSpriteAnim.getFrame());
   
   Renderer.end_draw();
 
 
   requestAnimationFrame(tic);
-}
-
-function debug_render()
-{
-  for (let x = -10; x < 10; ++x)
-  {
-    for (let y = -10; y < 10; ++y)
-    {
-      if ((x < 4 && x > -4) && (y < 4 && y > -4))
-      {
-        Renderer.draw_sprite(x * 8, y * 8, spritesheet.get_sprite(4, 8));
-        continue;
-      }
-      let off_x = 0, off_y = 0;
-      off_x = x > 0 ? 1 : -1;
-      if (y === x)
-      {
-        off_y -= Math.sign(x);
-      }
-      else if (y === -x)
-      {
-        off_y += Math.sign(x);
-      }
-      else if (y < -x && y < x)
-      {
-        off_x = 0;
-        ++off_y;
-      }
-      else if ( y > x && y > -x)
-      {
-        off_x = 0;
-        --off_y;
-      }
-      
-      Renderer.draw_sprite(x * 8, y * 8, spritesheet.get_sprite(4 + off_x, 8 + off_y));
-    }
-  }
-
-  Renderer.draw_sprite(16, 0, spritesheet.get_sprite(7, 5, 2, 2));
 }

@@ -21,9 +21,9 @@ function on_close(_e : Event) : void
 {
   console.log("Disconnected from server... ")
   connected = false;
-  setTimeout(() => {
-    init();
-  }, 5000);
+  // setTimeout(() => {
+  //   init();
+  // }, 5000);
 }
 
 function on_message(message : MessageEvent<any>) : void

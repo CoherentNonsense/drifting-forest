@@ -1,36 +1,71 @@
 namespace Sprite
 {
 
-export type Frame = {
+export class Frame {
   u : number;
   v : number;
   width : number;
   height : number;
-  size : number;
+
+  constructor(u : number, v : number, width : number, height : number) {
+    this.u = u;
+    this.v = v;
+    this.width = width;
+    this.height = height;
+  }
 };
 
-export class Spritesheet
-{
+export class AnimatedSprite {
+  private animations : Array<Frame>;
+  private frameCount : number;
+  private frameDuration : number;
+  private offset : number;
+  private timer : number;
+
+  constructor(startFrame : Frame, frameCount : number, frameDuration : number) {
+    this.animations = [startFrame];
+    this.frameCount = frameCount;
+    this.frameDuration = frameDuration;
+    this.offset = 0;
+    this.timer = 0;
+  }
+
+  update(deltaTime : number) {
+    this.timer += deltaTime;
+    if (this.timer > this.frameDuration) {
+      this.timer = 0;
+      this.offset = (this.offset + 1) % this.frameCount;
+    }
+  }
+
+  getFrame() : Frame {
+    return new Frame(
+      this.animations[0].u + this.offset * this.animations[0].width,
+      this.animations[0].v,
+      this.animations[0].width,
+      this.animations[0].height
+    );
+  }
+}
+
+export class Spritesheet {
   private size : number;
-  private frame_size : number;
+  private frameSize : number;
 
   constructor(size : number, frame_size : number)
   {
     this.size = size;
-    this.frame_size = frame_size;
+    this.frameSize = frame_size;
   }
 
-  get_sprite(u : number, v : number, width : number = 1, height : number = 1)
+  getFrame(u : number, v : number, width : number = 1, height : number = 1)
   {
-    const frame : Frame = {
-      u: u * this.frame_size,
-      v: v * this.frame_size,
-      width: width * this.frame_size,
-      height: height * this.frame_size,
-      size: this.size
-    };
-
-    return frame;
+    return new Frame(
+      u * this.frameSize,
+      v * this.frameSize,
+      width * this.frameSize,
+      height * this.frameSize,
+    );
   }
 }
 

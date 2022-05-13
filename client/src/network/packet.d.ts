@@ -1,7 +1,7 @@
 export enum ServerPacketIds
 {
   LoadChunk, UpdateChunk, UpdateEntities
-};
+}
 
 export enum ClientPacketIds
 {

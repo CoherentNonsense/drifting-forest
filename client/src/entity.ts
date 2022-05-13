@@ -1,0 +1,11 @@
+class Entity {
+  
+  
+  constructor() {
+
+  }
+
+  update() {
+
+  }
+}

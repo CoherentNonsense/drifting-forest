@@ -1,5 +1,8 @@
-# Drifting Forest
-WIP roguelike mmo
+# Drifting Forest (??? Pending Title)
+
+WIP casual mmo 
+
+Note: Sort of pivoted from the roguelike thing
 
 <img src="misc/readme_cover.png" alt="cover image of game">
 

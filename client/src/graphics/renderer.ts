@@ -1,20 +1,21 @@
-import Camera from "./camera.js";
-import AssetLoader from "./asset_loader.js";
-import Context from "./context.js";
-import Shader from "./shader.js";
-import Sprite from "./spritesheet.js";
-
+import AssetLoader from "./asset_loader";
+import Context from "./context";
+import Shader from "./shader";
+import Sprite from "./spritesheet";
+import { mat4 } from "gl-matrix";
+import Camera from "./camera";
 
 const MAX_QUADS : number = 500;
 const MAX_VERTICES : number = MAX_QUADS * 4;
-const VERTEX_SIZE : number = 3 + 2; // Position + UV
+const VERTEX_SIZE : number = 2 + 2; // Position + UV
 const BUFFER_SIZE : number = MAX_VERTICES * VERTEX_SIZE;
 
 namespace Renderer
 {
   
-export let context : Context;
-let camera : Camera;
+let context : Context;
+let view : mat4 = mat4.create();
+let proj : mat4 = mat4.create();
 
 let shaders : Map<string, Shader> = new Map();
 let textures : Map<string, HTMLImageElement> = new Map();
@@ -52,6 +53,10 @@ function generate_indices(n_quads : number) : Uint16Array
   return indicies;
 }
 
+export function getContext() : Context {
+  return context;
+}
+
 export async function init(_context : Context) : Promise<void>
 {
   context = _context;
@@ -75,28 +80,28 @@ export async function init(_context : Context) : Promise<void>
   shaders.set("default", default_shader);
 
   default_shader.use();
-  default_shader.vertexAttribPointer("a_position", 3, webGl.FLOAT, false, VERTEX_SIZE * 4, 0);
-  default_shader.vertexAttribPointer("a_texcoord", 2, webGl.FLOAT, false, VERTEX_SIZE * 4, 3 * 4);
+  default_shader.vertexAttribPointer("a_position", 2, webGl.FLOAT, false, VERTEX_SIZE * 4, 0);
+  default_shader.vertexAttribPointer("a_texcoord", 2, webGl.FLOAT, false, VERTEX_SIZE * 4, 2 * 4);
 
   webGl.uniform1i(default_shader.getUniform("u_texture"), 0);
 
   // Texture
   const default_texture = await AssetLoader.load_image("textures/concept.png");
+  const player_texture = await AssetLoader.load_image("textures/spritesheet.png");
   textures.set("default", default_texture);
+  textures.set("player", player_texture);
   texture = webGl.createTexture();
   webGl.bindTexture(webGl.TEXTURE_2D, texture);
   webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_MIN_FILTER, webGl.NEAREST);
   webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_MAG_FILTER, webGl.NEAREST);
   webGl.blendFunc(webGl.SRC_ALPHA, webGl.ONE_MINUS_SRC_ALPHA);
   webGl.enable(webGl.BLEND);
-  webGl.texImage2D(webGl.TEXTURE_2D, 0, webGl.RGBA, webGl.RGBA, webGl.UNSIGNED_BYTE, default_texture);
+  webGl.texImage2D(webGl.TEXTURE_2D, 0, webGl.RGBA, webGl.RGBA, webGl.UNSIGNED_BYTE, textures.get("player") as HTMLImageElement);
 
-  webGl.clearColor(1.0, 1.0, 1.0, 1.0);
-}
+  webGl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-export function use_camera(m_camera : Camera)
-{
-  camera = m_camera;
+  mat4.ortho(proj, -192, 192, -192, 192, 0.1, 100);
+  mat4.lookAt(view, [0, 0, 1], [0, 0, -1], [0, 1, 0]);
 }
 
 function flush() : void
@@ -111,16 +116,13 @@ function flush() : void
   p_vertex = 0;
 }
 
-export function start_draw() : void
+export function start_draw(camera : Camera) : void
 {
-  const webGl = context.webGl;
+  const { webGl } = context;
   webGl.clear(webGl.COLOR_BUFFER_BIT);
-
   const shader = shaders.get("default") as Shader;
-  webGl.uniform3f(shader.getUniform("u_offset"),
-    Math.round(camera.position.x * context.canvas.width) / context.canvas.width,
-    Math.round(camera.position.y * context.canvas.height) / context.canvas.height, camera.position.z);
-  webGl.uniform1f(shader.getUniform("u_scale"), Math.round(camera.scale));
+  webGl.uniformMatrix4fv(shader.getUniform("u_projection"), false, camera.getProjection(context));
+  webGl.uniformMatrix4fv(shader.getUniform("u_view"), false, camera.getView());
 }
 
 export function end_draw() : void
@@ -135,43 +137,37 @@ export function draw_sprite(x : number, y : number, sprite : Sprite.Frame) : voi
     flush();
   }
 
-  const { width: canvas_width, height: canvas_height } = context.canvas;
+  const x_left = x - sprite.width / 2;
+  const x_right = x + sprite.width / 2;
+  const y_top = y + sprite.height / 2;
+  const y_bottom = y - sprite.height / 2;
+
+  const u_left = (sprite.u);
+  const u_right = (sprite.u + sprite.width);
+  const v_top = (sprite.v);
+  const v_bottom = (sprite.v + sprite.height);
   
-  const x_left = (x + offset.x - 4) / canvas_width;
-  const x_right = (x + sprite.width + offset.x - 4) / canvas_width;
-  const y_top = (y + sprite.height + offset.y - 4) / canvas_height;
-  const y_bottom = (y + offset.y - 4) / canvas_height;
-
-  const u_left = (sprite.u + 0.005) / sprite.size;
-  const u_right = (sprite.u + sprite.width - 0.005) / sprite.size;
-  const v_top = (sprite.v + 0.005) / sprite.size;
-  const v_bottom = (sprite.v + sprite.height - 0.005) / sprite.size;
-
   // Top Left
   vertices[p_vertex++] = x_left;
   vertices[p_vertex++] = y_top;
-  vertices[p_vertex++] = 0;
   vertices[p_vertex++] = u_left;
   vertices[p_vertex++] = v_top;
   
   // Bottom Left
   vertices[p_vertex++] = x_left;
   vertices[p_vertex++] = y_bottom;
-  vertices[p_vertex++] = 0;
   vertices[p_vertex++] = u_left;
   vertices[p_vertex++] = v_bottom;
   
   // Top Right
   vertices[p_vertex++] = x_right;
   vertices[p_vertex++] = y_top;
-  vertices[p_vertex++] = 0;
   vertices[p_vertex++] = u_right;
   vertices[p_vertex++] = v_top;
   
   // Bottom Right
   vertices[p_vertex++] = x_right;
   vertices[p_vertex++] = y_bottom;
-  vertices[p_vertex++] = 0;
   vertices[p_vertex++] = u_right;
   vertices[p_vertex++] = v_bottom;
 

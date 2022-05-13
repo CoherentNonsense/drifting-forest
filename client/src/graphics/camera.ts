@@ -1,31 +1,43 @@
-import { delta_time } from "../client.js";
-import { Vector3, Vector2 } from "../game/math.js";
+import { deltaTime } from "../client.js";
+import { vec2, mat4 } from "gl-matrix";
+import Context from "./context.js";
 
 class Camera
 {
-  public position : Vector3;
-  public scale : number;
+  public position : vec2;
+
+  private projection : mat4;
+  private view : mat4;
+  private scale : number;
 
   constructor()
   {
-    this.position = { x: 0, y: 0, z: 0 };
-    this.scale = 10;
+    this.position = vec2.create();
+    this.projection = mat4.create();
+    this.view = mat4.create();
+    this.scale = 1;
   }
 
-  pan(dir : Vector2 | Vector3)
-  {
-    this.position.x += dir.x * delta_time;
-    this.position.y += dir.y * delta_time;
+  moveTo(position : vec2) {
+    this.position = position;
   }
 
-  dolly(dir : number)
-  {
-    this.position.z += dir * delta_time;
+  setScale(scaleFactor : number) {
+    this.scale = scaleFactor;
   }
 
-  zoom(scale : number)
-  {
-    this.scale += this.scale * scale * delta_time;
+  getView() : mat4 {
+    mat4.lookAt(this.view, [this.position[0], this.position[1], 1], [this.position[0], this.position[1], -1], [0, 1, 0]);
+    return this.view;
+  }
+
+  getProjection(context : Context) : mat4 {
+    const { canvas } = context;
+    const halfWidth = canvas.width / 2 / this.scale;
+    const halfHeight = canvas.height / 2 / this.scale;
+  
+    mat4.ortho(this.projection, -halfWidth, halfWidth, -halfHeight, halfHeight, 0.1, 100);
+    return this.projection;
   }
 }
 
