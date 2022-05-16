@@ -1,4 +1,4 @@
-namespace Socket
+namespace Network
 {
 
 type ServerDataObj = {
@@ -7,7 +7,7 @@ type ServerDataObj = {
 
 const URL : string = "ws://localhost:8080";
 
-let socket : WebSocket | null = null;
+let socket : WebSocket;
 let connected : boolean = false;
 const server_data : ServerDataObj[] = new Array();
 
@@ -28,7 +28,7 @@ function on_close(_e : Event) : void
 
 function on_message(message : MessageEvent<any>) : void
 {
-  const view = new Uint8Array(message.data);
+  const view = new Uint16Array(message.data);
   console.log("Incoming message: " + view);
 }
 
@@ -48,6 +48,11 @@ export function send(id : number, data : any) : void
   if (!connected)
     return;
   console.log(`Sending: ${id} ${data}`);
+  const buffer = new ArrayBuffer(4);
+  const view = new Uint16Array(buffer);
+  view[0] = id;
+  view[1] = data;
+  socket.send(buffer);
 }
 
 export function has_message() : boolean
@@ -62,4 +67,6 @@ export function poll() : any
 
 }
 
-export default Socket;
+addEventListener('mousedown', () => {Network.send(2, 99)});
+
+export default Network;

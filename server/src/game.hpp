@@ -6,17 +6,10 @@
 namespace Game
 {
 
-enum class MessageType : uint8_t
-{
-  Join,
-  Leave,
-  Input
-};
-
 void init();
 void run();
 void cleanup();
 
-void on_client_message(Server::WebSocket* socket, std::string_view message);
+void on_client_message(Network::WebSocket* socket, std::string_view message);
 
 }

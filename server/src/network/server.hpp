@@ -5,7 +5,7 @@
 
 #include "message.hpp"
 
-namespace Server
+namespace Network
 {
 
 struct PerSocketData

@@ -2,47 +2,56 @@
 
 #include <stdint.h>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <stdint.h>
+#include <assert.h>
 
-namespace Server
+namespace Network
 {
 
-enum ServerMessageType : uint16_t
+enum class ServerMessageType : uint16_t
 {
-  Hello,
-  There,
-  Bois
+  Test,
 };
 
-enum ClientMessageType : uint16_t
+enum class ClientMessageType : uint16_t
 {
-
+  Join,
+  Leave,
 };
 
 template <typename MessageType>
-struct MessageHeader
-{
-  MessageType type;
-  uint16_t size;
-};
-
-template <typename Header>
 struct Message
 {
 public:
-  Message(Header header)
+  Message(const std::string_view& buffer)
   {
-    buffer.resize(sizeof(Header));
-    memcpy(buffer.data(), &header, sizeof(Header));
+    this->buffer.reserve(buffer.size());
+    std::memcpy(this->buffer.data(), buffer.data(), buffer.size());
+  }
+
+  Message(MessageType type, size_t body_size = 0)
+  : type(type)
+  {
+    buffer.reserve(sizeof(type) + body_size);
+    memcpy(buffer.data(), &type, sizeof(type));
   }
 
   template <typename T>
-  void push(T data)
+  void write(T data)
   {
-    // buffer.resize(buffer.size() + sizeof(T));
-    // std::memcpy(buffer.data() + buffer.size(), &data, sizeof(T));
-    // std::memcpy(buffer.data() + 2 );
+    assert(buffer.size() + sizeof(data) > buffer.capacity() && "Network::Message::push: Not enough memory reserved.");
+    std::memcpy(buffer.data() + buffer.size(), &data, sizeof(T));
+  }
+
+  template <typename T>
+  T read()
+  {
+    T data;
+    std::memcpy(&data, buffer.data() + front, sizeof(data));
+    front += sizeof(data);
+    return data;
   }
 
   const char* data() const
@@ -56,13 +65,12 @@ public:
   }
 
 private:
+  MessageType type;
+  size_t front = 0;
   std::vector<char> buffer;
 };
 
-using ServerHeader = MessageHeader<ServerMessageType>;
-using ClientHeader = MessageHeader<ClientMessageType>;
-
-using ServerMessage = Message<ServerHeader>;
-using ClientMessage = Message<ClientHeader>;
+using ServerMessage = Message<ServerMessageType>;
+using ClientMessage = Message<ClientMessageType>;
 
 }

@@ -2,7 +2,7 @@ import run_client from "./client";
 import Context from "./graphics/context";
 import Renderer from "./graphics/renderer";
 import Input from "./input";
-import Socket from "./network/socket";
+import Network from "./network/socket";
 
 async function main()
 {
@@ -11,7 +11,7 @@ async function main()
 
   Input.listen(window);
   
-  Socket.init();
+  Network.init();
 
   run_client();
 }

@@ -9,7 +9,7 @@
 #include "message.hpp"
 #include "game.hpp"
 
-namespace Server
+namespace Network
 {
 
 static int PORT = 8080;
@@ -20,12 +20,12 @@ static uWS::SSLApp* app;
 static std::thread server_thread;
 
 
-static void client_connect(Server::WebSocket* socket)
+static void client_connect(Network::WebSocket* socket)
 {
   std::cout << "Connected" << std::endl;
 }
 
-static void client_disconnect(Server::WebSocket* socket)
+static void client_disconnect(Network::WebSocket* socket)
 {
   std::cout << "Disconnected" << std::endl;
 }
@@ -90,7 +90,7 @@ void cleanup()
 void send(WebSocket* socket, ServerMessage& message)
 {
   loop->defer([socket, message = std::move(message)]() {
-    socket->send(std::string_view{ message.data(), message.size() });
+    socket->send(std::string_view{ message.data(), message.size() }, uWS::OpCode::BINARY);
   });
 }
 
@@ -100,7 +100,7 @@ void send(WebSocket* socket, ServerMessage& message)
 void broadcast(ServerMessage& message)
 {
   loop->defer([message = std::move(message)]() {
-    app->publish(std::string_view{ "broadcast" }, std::string_view{ message.data() }, uWS::OpCode::BINARY);
+    app->publish("broadcast", std::string_view{ message.data(), message.size() }, uWS::OpCode::BINARY);
   });
 }
 

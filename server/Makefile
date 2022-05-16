@@ -1,4 +1,4 @@
-source = src/main.cpp src/server/server.cpp src/game.cpp
+source = src/main.cpp src/network/server.cpp src/game.cpp
 includes = -Isrc -Ilibs -lz -lpthread -Wall
 libraries = /usr/local/lib/uSockets.a /usr/local/lib/libdeflate.a
 
