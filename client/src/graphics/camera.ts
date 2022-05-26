@@ -26,6 +26,11 @@ class Camera
     this.scale = scaleFactor;
   }
 
+  zoom(delta : number) {
+    this.scale += delta;
+    if (this.scale < 1) this.scale = 1;
+  }
+
   getView() : mat4 {
     mat4.lookAt(this.view, [this.position[0], this.position[1], 1], [this.position[0], this.position[1], -1], [0, 1, 0]);
     return this.view;

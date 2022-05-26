@@ -1,12 +1,10 @@
 #include "server.hpp"
 
-#include <thread>
 #include <string_view>
 #include <string>
 #include <assert.h>
 #include <iostream>
 
-#include "message.hpp"
 #include "game.hpp"
 
 namespace Network
@@ -16,9 +14,6 @@ static int PORT = 8080;
 
 static uWS::Loop* loop;
 static uWS::SSLApp* app;
-
-static std::thread server_thread;
-
 
 static void client_connect(Network::WebSocket* socket)
 {
@@ -30,7 +25,7 @@ static void client_disconnect(Network::WebSocket* socket)
   std::cout << "Disconnected" << std::endl;
 }
 
-static void create_app()
+void start_server()
 {
   app = new uWS::SSLApp({
     .key_file_name = "../misc/key.pem",
@@ -73,11 +68,6 @@ static void create_app()
   app->run();
 }
 
-void run()
-{
-  server_thread = std::thread{ create_app };
-}
-
 void cleanup()
 {
   delete app;
@@ -87,7 +77,7 @@ void cleanup()
 /**
  * Sends a message to a client
  */
-void send(WebSocket* socket, ServerMessage& message)
+void send(WebSocket* socket, ServerPacket& message)
 {
   loop->defer([socket, message = std::move(message)]() {
     socket->send(std::string_view{ message.data(), message.size() }, uWS::OpCode::BINARY);
@@ -97,7 +87,7 @@ void send(WebSocket* socket, ServerMessage& message)
 /**
  * Broadcasts a message to all connected clients
  */ 
-void broadcast(ServerMessage& message)
+void broadcast(ServerPacket& message)
 {
   loop->defer([message = std::move(message)]() {
     app->publish("broadcast", std::string_view{ message.data(), message.size() }, uWS::OpCode::BINARY);

@@ -10,28 +10,30 @@
 namespace Network
 {
 
-enum class ServerMessageType : uint16_t
+enum class ServerPacketType : uint16_t
 {
   Test,
 };
 
-enum class ClientMessageType : uint16_t
+enum class ClientPacketType : uint16_t
 {
   Join,
   Leave,
+  Move,
 };
 
-template <typename MessageType>
-struct Message
+template <typename PacketType>
+struct Packet
 {
 public:
-  Message(const std::string_view& buffer)
+  Packet(const std::string_view& buffer)
   {
     this->buffer.reserve(buffer.size());
     std::memcpy(this->buffer.data(), buffer.data(), buffer.size());
+    packet_type = this->read<PacketType>();
   }
 
-  Message(MessageType type, size_t body_size = 0)
+  Packet(PacketType type, size_t body_size = 0)
   : type(type)
   {
     buffer.reserve(sizeof(type) + body_size);
@@ -41,7 +43,7 @@ public:
   template <typename T>
   void write(T data)
   {
-    assert(buffer.size() + sizeof(data) > buffer.capacity() && "Network::Message::push: Not enough memory reserved.");
+    assert(buffer.size() + sizeof(data) > buffer.capacity() && "Network::Packet::push: Not enough memory reserved.");
     std::memcpy(buffer.data() + buffer.size(), &data, sizeof(T));
   }
 
@@ -54,23 +56,28 @@ public:
     return data;
   }
 
+  const PacketType type() const
+  {
+    return packet_type;
+  }
+
   const char* data() const
   {
     return buffer.data();
   }
 
-  size_t size() const
+  const size_t size() const
   {
     return buffer.size();
   }
 
 private:
-  MessageType type;
+  PacketType packet_type;
   size_t front = 0;
   std::vector<char> buffer;
 };
 
-using ServerMessage = Message<ServerMessageType>;
-using ClientMessage = Message<ClientMessageType>;
+using ServerPacket = Packet<ServerPacketType>;
+using ClientPacket = Packet<ClientPacketType>;
 
 }

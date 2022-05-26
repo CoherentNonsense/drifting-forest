@@ -14,7 +14,7 @@ buttons.forEach((button) => {
 
 const playerSpritesheet = new Sprite.Spritesheet(512, 32);
 const playerSprite = playerSpritesheet.getFrame(0, 0);
-const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.15);
+const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.13);
 const flowerSprite = playerSpritesheet.getFrame(0, 1);
 const groundSprite = playerSpritesheet.getFrame(1, 1);
 
@@ -25,7 +25,15 @@ let xPos = 0;
 const speed = 80;
 
 const camera = new Camera();
-camera.setScale(3);
+camera.setScale(4);
+
+addEventListener('wheel', (e : WheelEvent) => {
+  if (e.deltaY > 0) {
+    camera.zoom(-1);
+  } else {
+    camera.zoom(1);
+  }
+});
 
 export default async function run_client()
 {

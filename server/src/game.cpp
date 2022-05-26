@@ -4,9 +4,12 @@
 #include <iostream>
 #include <mutex>
 #include <memory>
+#include <stack>
+#include <thread>
 
 #include "systems/game_tick.hpp"
-#include "network/message.hpp"
+#include "systems/player_input.hpp"
+#include "network/packet.hpp"
 
 namespace Game
 {
@@ -18,11 +21,15 @@ static std::mutex input_mutex{};
 
 static int64_t last_tic = 0;
 static bool running = true;
-// static std::unique_ptr<World::World> world = std::make_unique<World::World>();
+
+static std::thread network_thread;
+
+static std::unique_ptr<World::World> world = std::make_unique<World::World>();
+static std::stack<Network::ClientPacket> client_messages;
 
 void init()
 {
-  Network::run();
+  network_thread = std::thread{ Network::start_server };
 }
 
 void run()
@@ -32,21 +39,21 @@ void run()
   while (running)
   {
     std::cin >> number_to_send;
-    // Server::ServerHeader header{ Server::ServerMessageType::Test, number_to_send };
-    // Server::ServerMessage message{ header };
-    // Server::broadcast(message);
 
-    // timespec_get(&ts, TIME_UTC);
-    // int64_t millis = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
+    timespec_get(&ts, TIME_UTC);
+    int64_t current_time = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
 
-    // if (millis > last_tic)
-    // {
-    //   input_mutex.lock();
-    //   Systems::game_tick();
-    //   input_mutex.unlock();
+    if (current_time > last_tic)
+    {
+      last_tic = current_time + TIME_STEP;
 
-    //   last_tic = millis + TIME_STEP;
-    // }
+      input_mutex.lock();
+      Systems::handle_player_input();
+      input_mutex.unlock();
+
+      Systems::game_tick(*world);
+
+    }
   }
 }
 
@@ -65,15 +72,10 @@ static void player_leave(uint32_t entity_id)
 
 }
 
-// Called by the server
 void on_client_message(Network::WebSocket* socket, std::string_view data)
 {
   input_mutex.lock();
-
-  Network::ServerMessage message{data};
-  std::cout << message.read<uint16_t>() << std::endl;
-  std::cout << message.read<uint16_t>() << std::endl;
-
+  client_messages.emplace(data);
   input_mutex.unlock();
 }
 

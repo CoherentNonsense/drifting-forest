@@ -6,7 +6,7 @@
 #include "constants.hpp"
 #include "voxel.hpp"
 #include "position.hpp"
-#include "entities/entities.hpp"
+#include "core/entities.hpp"
 
 
 namespace World

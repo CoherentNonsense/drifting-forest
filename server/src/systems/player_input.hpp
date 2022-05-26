@@ -3,6 +3,6 @@
 namespace Systems
 {
 
-void player_input();
+void handle_player_input();
 
 }

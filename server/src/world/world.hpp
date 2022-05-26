@@ -7,7 +7,7 @@
 
 #include "position.hpp"
 #include "chunk.hpp"
-#include "entities/entities.hpp"
+#include "core/entities.hpp"
 
 namespace World
 {
@@ -24,8 +24,8 @@ public:
   Chunk* get_chunk(WorldPosition world_position) const;
 
 public:
-  std::unique_ptr<Entities::Manager> entities;
-  std::unique_ptr<WorldGenerator> world_generator;
+  std::unique_ptr<glm::vec2> entities;
+  std::unique_ptr<int> players;
   ChunkMap<ChunkPosition, Chunk*> chunks;
   std::vector<Chunk*> chunk_pool;
 };

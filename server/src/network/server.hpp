@@ -3,7 +3,7 @@
 #include <uWebSockets/App.h>
 #include <stdint.h>
 
-#include "message.hpp"
+#include "packet.hpp"
 
 namespace Network
 {
@@ -18,9 +18,9 @@ struct PerSocketData
 
 using WebSocket = uWS::WebSocket<true, true, PerSocketData>;
 
-void run();
-void send(WebSocket* socket, ServerMessage& message);
-void broadcast(ServerMessage& message);
+void start_server();
+void send(WebSocket* socket, ServerPacket& message);
+void broadcast(ServerPacket& message);
 void cleanup();
 
 }
