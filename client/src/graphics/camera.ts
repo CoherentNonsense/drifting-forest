@@ -27,12 +27,16 @@ class Camera
   }
 
   zoom(delta : number) {
-    this.scale += delta;
-    if (this.scale < 1) this.scale = 1;
+    this.scale += Math.round(delta);
+    if (this.scale > 6) this.scale += Math.round(delta);
+    if (this.scale < 2) this.scale = 2;
+    if (this.scale > 16) this.scale = 16;
   }
 
   getView() : mat4 {
-    mat4.lookAt(this.view, [this.position[0], this.position[1], 1], [this.position[0], this.position[1], -1], [0, 1, 0]);
+    const x_rounded = Math.round(this.position[0]);
+    const y_rounded = Math.round(this.position[1]);
+    mat4.lookAt(this.view, [x_rounded, y_rounded, 1], [x_rounded, y_rounded, -1], [0, 1, 0]);
     return this.view;
   }
 

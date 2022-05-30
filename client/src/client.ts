@@ -14,7 +14,7 @@ buttons.forEach((button) => {
 
 const playerSpritesheet = new Sprite.Spritesheet(512, 32);
 const playerSprite = playerSpritesheet.getFrame(0, 0);
-const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.13);
+const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.2);
 const flowerSprite = playerSpritesheet.getFrame(0, 1);
 const groundSprite = playerSpritesheet.getFrame(1, 1);
 
@@ -22,7 +22,7 @@ const groundSprite = playerSpritesheet.getFrame(1, 1);
 let lastTime = 0;
 let yPos = 0;
 let xPos = 0;
-const speed = 80;
+const speed = 85;
 
 const camera = new Camera();
 camera.setScale(4);
@@ -43,12 +43,13 @@ export default async function run_client()
 /**
  * Called every frame
  */
+let timer = 0;
 function tic(time : number) : void
 {
   // Calculate timing
   deltaTime = (time - lastTime) / 1000;
   lastTime = time;
-
+  
   // Get player input
   let dirX = 0, dirY = 0;
   if (Input.get_key("KeyW")) { dirY += 1 * deltaTime * speed }
@@ -61,39 +62,43 @@ function tic(time : number) : void
     dirX *= 0.707;
     dirY *= 0.707;
   }
+  playerSpriteAnim.update(deltaTime);
 
   xPos += dirX;
   yPos += dirY;
 
-  // Send input to server
-  // Socket.send("input", true);
-
-  // Apply any data from server
-  while (Socket.has_message())
+  if (timer + 50 < time)
   {
-    const serverData = Socket.poll();
-    // World.apply_server_data(server_data);
-  }
-
-  camera.moveTo(vec2.fromValues(Math.round(xPos), Math.round(yPos)));
-  // Render scene
-  Renderer.start_draw(camera);
-
-  // debug_render();
-  // chunk.draw();
-  for (let x = 0; x < 32; ++x) {
-    for (let y = 0; y < 16; ++y) {
-      if (Math.sin((x - y * 0.5)) > -0) {
-        Renderer.draw_sprite(x * 32, y * 32, flowerSprite);
-      } else {
-        Renderer.draw_sprite(x * 32, y * 32, groundSprite);
+    timer = time + 50;
+    // Send input to server
+    // Socket.send("input", true);
+  
+    // Apply any data from server
+    while (Socket.has_message())
+    {
+      const serverData = Socket.poll();
+      // World.apply_server_data(server_data);
+    }
+  
+    camera.moveTo(vec2.fromValues(xPos, yPos));
+    // Render scene
+    Renderer.start_draw(camera);
+  
+    // debug_render();
+    // chunk.draw();
+    for (let x = 0; x < 32; ++x) {
+      for (let y = 0; y < 16; ++y) {
+        if (Math.sin((x - y * 0.5)) > -0) {
+          Renderer.draw_sprite(x * 32, y * 32, flowerSprite);
+        } else {
+          Renderer.draw_sprite(x * 32, y * 32, groundSprite);
+        }
       }
     }
+    Renderer.draw_sprite(Math.round(xPos), Math.round(yPos), playerSpriteAnim.getFrame());
+    
+    Renderer.end_draw();
   }
-  playerSpriteAnim.update(deltaTime);
-  Renderer.draw_sprite(Math.round(xPos), Math.round(yPos), playerSpriteAnim.getFrame());
-  
-  Renderer.end_draw();
 
 
   requestAnimationFrame(tic);

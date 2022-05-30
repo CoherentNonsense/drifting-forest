@@ -94,13 +94,14 @@ export async function init(_context : Context) : Promise<void>
   webGl.bindTexture(webGl.TEXTURE_2D, texture);
   webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_MIN_FILTER, webGl.NEAREST);
   webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_MAG_FILTER, webGl.NEAREST);
+  webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_WRAP_S, webGl.CLAMP_TO_EDGE);
+  webGl.texParameteri(webGl.TEXTURE_2D, webGl.TEXTURE_WRAP_T, webGl.CLAMP_TO_EDGE);
   webGl.blendFunc(webGl.SRC_ALPHA, webGl.ONE_MINUS_SRC_ALPHA);
   webGl.enable(webGl.BLEND);
   webGl.texImage2D(webGl.TEXTURE_2D, 0, webGl.RGBA, webGl.RGBA, webGl.UNSIGNED_BYTE, textures.get("player") as HTMLImageElement);
 
   webGl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-  mat4.ortho(proj, -192, 192, -192, 192, 0.1, 100);
   mat4.lookAt(view, [0, 0, 1], [0, 0, -1], [0, 1, 0]);
 }
 
@@ -137,10 +138,13 @@ export function draw_sprite(x : number, y : number, sprite : Sprite.Frame) : voi
     flush();
   }
 
-  const x_left = x - sprite.width / 2;
-  const x_right = x + sprite.width / 2;
-  const y_top = y + sprite.height / 2;
-  const y_bottom = y - sprite.height / 2;
+  const x_rounded = Math.round(x);
+  const y_rounded = Math.round(y);
+
+  const x_left = x_rounded - sprite.width / 2;
+  const x_right = x_rounded + sprite.width / 2;
+  const y_top = y_rounded + sprite.height / 2;
+  const y_bottom = y_rounded - sprite.height / 2;
 
   const u_left = (sprite.u);
   const u_right = (sprite.u + sprite.width);

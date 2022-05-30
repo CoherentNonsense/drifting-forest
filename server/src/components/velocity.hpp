@@ -5,12 +5,13 @@
 namespace Components
 {
 
-struct Position
+struct Velocity
 {
   float x;
   float y;
-  int16_t z;
-  int16_t scene_id;
+  float speed;
 };
+
+
 
 }
