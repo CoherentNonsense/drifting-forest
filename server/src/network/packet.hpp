@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <stdint.h>
 #include <string>
 #include <string_view>
@@ -26,48 +27,42 @@ template <typename PacketType>
 struct Packet
 {
 public:
-  Packet(const std::string_view& buffer)
-  {
-    this->buffer.reserve(buffer.size());
-    std::memcpy(this->buffer.data(), buffer.data(), buffer.size());
+  Packet(const std::string_view& buffer) {
+    this->buffer.reserve(buffer.length());
+    std::copy(buffer.begin(), buffer.end(), std::back_inserter(this->buffer));
     packet_type = this->read<PacketType>();
   }
 
   Packet(PacketType type, size_t body_size = 0)
-  : type(type)
-  {
+  : packet_type(type) {
     buffer.reserve(sizeof(type) + body_size);
     memcpy(buffer.data(), &type, sizeof(type));
   }
 
   template <typename T>
-  void write(T data)
-  {
+  void write(T data) {
     assert(buffer.size() + sizeof(data) > buffer.capacity() && "Network::Packet::push: Not enough memory reserved.");
     std::memcpy(buffer.data() + buffer.size(), &data, sizeof(T));
   }
 
   template <typename T>
-  T read()
-  {
+  T read() {
+    assert(front + sizeof(T) <= buffer.capacity() && "Network::Packet::read: Not enough memoryr reserved.");
     T data;
-    std::memcpy(&data, buffer.data() + front, sizeof(data));
-    front += sizeof(data);
+    std::memcpy(&data, buffer.data() + front, sizeof(T));
+    front += sizeof(T);
     return data;
   }
 
-  const PacketType type() const
-  {
+  const PacketType type() const {
     return packet_type;
   }
 
-  const char* data() const
-  {
+  const char* data() const {
     return buffer.data();
   }
 
-  const size_t size() const
-  {
+  const size_t size() const {
     return buffer.size();
   }
 

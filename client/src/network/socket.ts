@@ -15,6 +15,7 @@ function on_open() : void
 {
   console.log("Connected to server...");
   connected = true;
+  send(2, 99);
 }
 
 function on_close(_e : Event) : void

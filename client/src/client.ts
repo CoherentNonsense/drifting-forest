@@ -14,7 +14,7 @@ buttons.forEach((button) => {
 
 const playerSpritesheet = new Sprite.Spritesheet(512, 32);
 const playerSprite = playerSpritesheet.getFrame(0, 0);
-const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.2);
+const playerSpriteAnim = new Sprite.AnimatedSprite(playerSprite, 4, 0.18);
 const flowerSprite = playerSpritesheet.getFrame(0, 1);
 const groundSprite = playerSpritesheet.getFrame(1, 1);
 
@@ -49,7 +49,7 @@ function tic(time : number) : void
   // Calculate timing
   deltaTime = (time - lastTime) / 1000;
   lastTime = time;
-  
+    
   // Get player input
   let dirX = 0, dirY = 0;
   if (Input.get_key("KeyW")) { dirY += 1 * deltaTime * speed }
@@ -67,9 +67,6 @@ function tic(time : number) : void
   xPos += dirX;
   yPos += dirY;
 
-  if (timer + 50 < time)
-  {
-    timer = time + 50;
     // Send input to server
     // Socket.send("input", true);
   
@@ -94,7 +91,6 @@ function tic(time : number) : void
           Renderer.draw_sprite(x * 32, y * 32, groundSprite);
         }
       }
-    }
     Renderer.draw_sprite(Math.round(xPos), Math.round(yPos), playerSpriteAnim.getFrame());
     
     Renderer.end_draw();

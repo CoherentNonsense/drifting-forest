@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include "game_data.hpp"
+
 #include <time.h>
 #include <iostream>
 #include <mutex>
@@ -7,76 +9,51 @@
 #include <stack>
 #include <thread>
 
-#include "systems/game_tick.hpp"
-#include "systems/player_input.hpp"
-#include "network/packet.hpp"
 
 namespace Game
 {
 
-static const int64_t TPS = 10;
-static const int64_t TIME_STEP = 1000 / TPS;
+static Data game_data{};
 
-static std::mutex input_mutex{};
-
-static int64_t last_tic = 0;
-static bool running = true;
-
-static std::thread network_thread;
-
-static std::unique_ptr<World::World> world = std::make_unique<World::World>();
-static std::stack<Network::ClientPacket> client_messages;
-
-void init()
-{
-  network_thread = std::thread{ Network::start_server };
+void init() {
+  Network::start_server();
+  // game_data.network_thread = std::thread{ Network::start_server };
 }
 
-void run()
-{
+void run() {
   timespec ts;
-  uint16_t number_to_send;
-  while (running)
-  {
-    std::cin >> number_to_send;
+  int64_t next_tick_timer = 0;
+  game_data.running = true;
+  while (game_data.running) {
+    // HACK
+    // char number_to_send;
+    // std::cin >> number_to_send;
 
+    // Timing
     timespec_get(&ts, TIME_UTC);
     int64_t current_time = ts.tv_sec * 1000 + ts.tv_nsec * 0.000001;
+    if (current_time > next_tick_timer) {
+      game_data.game_tick += 1;
+      
+      game_data.client_input_mutex.lock();
 
-    if (current_time > last_tic)
-    {
-      last_tic = current_time + TIME_STEP;
-
-      input_mutex.lock();
-      Systems::handle_player_input();
-      input_mutex.unlock();
-
-      Systems::game_tick(*world);
-
+      std::optional<Network::ClientPacket> packet_optional = Network::poll();
+      while (packet_optional.has_value()) {
+        Network::ClientPacket packet = packet_optional.value();
+        printf("%hu %hu\n", packet.type(), packet.read<unsigned short>());
+        
+        packet_optional = Network::poll();        
+      }
+                  
+      game_data.client_input_mutex.unlock();
+     
+      next_tick_timer = current_time + TIME_STEP;
     }
   }
 }
 
-void cleanup()
-{
+void cleanup() {
   Network::cleanup();
-}
-
-static void player_join(Network::WebSocket* socket)
-{
-  socket->getUserData()->client_id = 1;
-}
-
-static void player_leave(uint32_t entity_id)
-{
-
-}
-
-void on_client_message(Network::WebSocket* socket, std::string_view data)
-{
-  input_mutex.lock();
-  client_messages.emplace(data);
-  input_mutex.unlock();
 }
 
 }
