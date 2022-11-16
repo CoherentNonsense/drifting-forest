@@ -1,5 +1,4 @@
 /build
 /compile_commands.json
-/a.out
-/a.out.dSYM
+/server
 /.cache
