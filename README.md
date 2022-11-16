@@ -9,15 +9,13 @@ Note: Sort of pivoted from the roguelike thing
 ## Compiling
 DF depends on [uWebSockets](https://github.com/uNetworking/uWebSockets)
 
-I might switch to CMake if this gets more complex, but just run make for now to get an executable.
-
 1. clone this repo and move into it
 ```
-git clone https://github.com/CoherentNonsense/drifting-forest-server.git && cd drifting-forest-server
+git clone https://github.com/CoherentNonsense/drifting-forest-server.git && cd drifting-forest-server/server
 ```
 2. compile with make and run the executable
 ```
-make && ./a.out
+make && ./server
 ```
 
 ## Documentation
