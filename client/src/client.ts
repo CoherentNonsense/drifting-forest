@@ -37,14 +37,13 @@ addEventListener('wheel', (e : WheelEvent) => {
 
 export default async function run_client()
 {
-  requestAnimationFrame(tic);
+  requestAnimationFrame(tick);
 }
 
 /**
  * Called every frame
  */
-let timer = 0;
-function tic(time : number) : void
+function tick(time : number) : void
 {
   // Calculate timing
   deltaTime = (time - lastTime) / 1000;
@@ -97,5 +96,5 @@ function tic(time : number) : void
   }
 
 
-  requestAnimationFrame(tic);
+  requestAnimationFrame(tick);
 }

@@ -19,12 +19,12 @@ const config: Configuration = {
     extensions: [".ts", ".js"],
   },
   output: {
-    path: path.resolve(__dirname, "../public/js"),
+    path: path.resolve(__dirname, "./public/js"),
     filename: "bundle.js",
     publicPath: '/js/'
   },
   devServer: {
-    static: path.join(__dirname, "../public"),
+    static: path.join(__dirname, "./public"),
     compress: true,
     port: 4000,
   },
