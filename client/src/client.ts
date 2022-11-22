@@ -1,7 +1,7 @@
 import Renderer from "./graphics/renderer";
 import Sprite from "./graphics/spritesheet";
 import Input from "./input";
-import Socket from "./network/socket";
+import Network from "./network/socket";
 import Camera from "./graphics/camera";
 import { vec2 } from "gl-matrix";
 
@@ -35,6 +35,8 @@ addEventListener('wheel', (e : WheelEvent) => {
   }
 });
 
+addEventListener('mousedown', () => {Network.send(0, 101)});
+
 export default async function run_client()
 {
   requestAnimationFrame(tick);
@@ -66,30 +68,30 @@ function tick(time : number) : void
   xPos += dirX;
   yPos += dirY;
 
-    // Send input to server
-    // Socket.send("input", true);
-  
-    // Apply any data from server
-    while (Socket.has_message())
-    {
-      const serverData = Socket.poll();
-      // World.apply_server_data(server_data);
-    }
-  
-    camera.moveTo(vec2.fromValues(xPos, yPos));
-    // Render scene
-    Renderer.start_draw(camera);
-  
-    // debug_render();
-    // chunk.draw();
-    for (let x = 0; x < 32; ++x) {
-      for (let y = 0; y < 16; ++y) {
-        if (Math.sin((x - y * 0.5)) > -0) {
-          Renderer.draw_sprite(x * 32, y * 32, flowerSprite);
-        } else {
-          Renderer.draw_sprite(x * 32, y * 32, groundSprite);
-        }
+  // Send input to server
+  // Socket.send("input", true);
+
+  // Apply any data from server
+  while (Network.hasMessage()) {
+    const serverPacket = Network.poll();
+    
+    console.log(`Network Tick ${serverPacket.read_u16()} ${serverPacket.read_u16()}`);
+  }
+
+  camera.moveTo(vec2.fromValues(xPos, yPos));
+  // Render scene
+  Renderer.start_draw(camera);
+
+  // debug_render();
+  // chunk.draw();
+  for (let x = 0; x < 32; ++x) {
+    for (let y = 0; y < 16; ++y) {
+      if (Math.sin((x - y * 0.5)) > -0) {
+        Renderer.draw_sprite(x * 32, y * 32, flowerSprite);
+      } else {
+        Renderer.draw_sprite(x * 32, y * 32, groundSprite);
       }
+    }
     Renderer.draw_sprite(Math.round(xPos), Math.round(yPos), playerSpriteAnim.getFrame());
     
     Renderer.end_draw();

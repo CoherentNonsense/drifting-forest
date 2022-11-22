@@ -1,5 +1,6 @@
 #pragma once
 
+#include "server.hpp"
 #include <algorithm>
 #include <stdint.h>
 #include <string>
@@ -36,13 +37,14 @@ public:
   Packet(PacketType type, size_t body_size = 0)
   : packet_type(type) {
     buffer.reserve(sizeof(type) + body_size);
-    memcpy(buffer.data(), &type, sizeof(type));
+    this->write<PacketType>(type);
   }
 
   template <typename T>
   void write(T data) {
-    assert(buffer.size() + sizeof(data) > buffer.capacity() && "Network::Packet::push: Not enough memory reserved.");
-    std::memcpy(buffer.data() + buffer.size(), &data, sizeof(T));
+    assert(front + sizeof(T) <= buffer.capacity() && "Network::Packet::push: Not enough memory reserved.");
+    std::memcpy(buffer.data() + front, &data, sizeof(T));
+    front += sizeof(T);
   }
 
   template <typename T>
@@ -63,7 +65,7 @@ public:
   }
 
   const size_t size() const {
-    return buffer.size();
+    return front;
   }
 
 private:

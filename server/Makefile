@@ -22,7 +22,7 @@ default : src/main.cpp
 	g++ -std=c++17 -g $(source) $(libraries) $(includes)
 
 clean :
-	rm -f a.out
+	rm -f server $(OFILES)
 
 debug:
 	echo $(CFILES)

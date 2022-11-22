@@ -1,6 +1,7 @@
 #include "game.hpp"
 
 #include "game_data.hpp"
+#include "network/packet.hpp"
 
 #include <chrono>
 #include <time.h>
@@ -34,18 +35,25 @@ void run() {
       
       game_data.client_input_mutex.lock();
 
-      std::optional<Network::ClientPacket> packet_optional = Network::poll();
-      while (packet_optional.has_value()) {
-        Network::ClientPacket packet = packet_optional.value();
-        printf("%hu %hu\n", packet.type(), packet.read<unsigned short>());
+      auto message_optional = Network::poll();
+      while (message_optional.has_value()) {
+        auto message = message_optional.value();
+        Network::WebSocket* socket = message.first;
+        Network::ClientPacket packet = message.second;
+        printf("INCOMNG: %hu\n", packet.type());
+  
+        Network::ServerPacket server_packet = Network::ServerPacket(Network::ServerPacketType::Test, 2);
+        server_packet.write<uint16_t>(packet.read<uint16_t>());
+
+        Network::send(socket, server_packet);
         
-        packet_optional = Network::poll();
+        message_optional = Network::poll();
       }
 
       game_data.client_input_mutex.unlock();
 
       next_tick_timer = current_time + TIME_STEP;
-      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
   }
 }

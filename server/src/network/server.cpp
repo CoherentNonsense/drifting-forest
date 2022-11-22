@@ -1,10 +1,12 @@
 #include "server.hpp"
 
+#include <cstdio>
 #include <optional>
 #include <string_view>
 #include <string>
 #include <assert.h>
 #include <iostream>
+#include <utility>
 
 #include "game.hpp"
 
@@ -19,19 +21,19 @@ static Data network_data{};
 
 static int32_t id_incrementor = 0;
 
-std::optional<ClientPacket> poll() {
+std::optional<std::pair<WebSocket*, ClientPacket>> poll() {
   if (network_data.client_packets.empty()) {
     return std::nullopt;
   }
 
   network_data.mutex.lock();
 
-  ClientPacket packet = network_data.client_packets.top();
+  auto pair = network_data.client_packets.top();
   network_data.client_packets.pop();
   
   network_data.mutex.unlock();
   
-  return std::optional<ClientPacket>{packet};
+  return std::optional<std::pair<WebSocket*, ClientPacket>>{pair};
 }
 
 static void client_connect(Network::WebSocket* socket) {
@@ -69,7 +71,7 @@ void start_server() {
       },
       .message = [](WebSocket* socket, std::string_view message, uWS::OpCode _) {
         network_data.mutex.lock();
-        network_data.client_packets.emplace(message);
+        network_data.client_packets.emplace(std::make_pair(socket, message));
         network_data.mutex.unlock();
       },
       .drain = [](WebSocket */*ws*/) {},
